@@ -9,8 +9,10 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Pedir una actualización
-        run: curl --fail-with-body --silent --show-error --max-time 90 -X POST "${DEMO_URL%/}/api/sync" -H "Authorization: Bearer $CRON_SECRET"
+      - name: Pedir una actualizacion
         env:
           DEMO_URL: ${{ secrets.DEMO_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          base=$(printf '%s' "$DEMO_URL" | sed 's:/*$::')
+          curl --fail-with-body --silent --show-error --max-time 90 -X POST "$base/api/sync" -H "Authorization: Bearer $CRON_SECRET"
