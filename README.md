@@ -43,7 +43,7 @@ Sin `BZZOIRO_API_KEY` el XML de ejemplo se queda como está.
 Vercel publica la página. No puede dejar `sync-loop` encendido, así que la copia que ve el público vive en un Blob y la reescribe un cron.
 
 1. Sube el repo a GitHub e impórtalo en Vercel.
-2. En el proyecto de Vercel, Storage → Blob → conecta un store. Eso crea `BLOB_READ_WRITE_TOKEN`.
+2. En el proyecto de Vercel, Storage → Blob → conecta un store. Vercel añade `BLOB_STORE_ID`. Con eso basta: no hace falta `BLOB_READ_WRITE_TOKEN`.
 3. En Environment Variables pon las mismas claves que en `.env`, más un `CRON_SECRET` largo (una frase aleatoria).
 4. En GitHub → Settings → Secrets, crea `CRON_SECRET` (el mismo) y `DEMO_URL` (la URL del deploy, sin barra final).
 5. El workflow `.github/workflows/sync.yml` llama a `/api/sync` cada 15 minutos. También puedes lanzarlo a mano en Actions.

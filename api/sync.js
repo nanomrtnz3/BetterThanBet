@@ -46,7 +46,7 @@ async function run(request) {
   if (!allowed(request)) {
     return new Response("No autorizado", { status: 401 });
   }
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!process.env.BLOB_STORE_ID && !process.env.BLOB_READ_WRITE_TOKEN) {
     return new Response("Falta el almacén de datos", { status: 500 });
   }
   if (!process.env.BZZOIRO_API_KEY) {

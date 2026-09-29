@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { get } from "@vercel/blob";
 
 async function latestXml() {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  if (!process.env.BLOB_STORE_ID && !process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
     const stored = await get("football.xml", { access: "private" });
     if (!stored?.stream) return null;
