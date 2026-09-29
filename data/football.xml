@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<footballCache generatedAt="2026-09-29T14:48:09.331Z" source="bzzoiro+api-football" ttlMinutes="15">
+  <meta>
+    <app>BetterThanBet</app>
+    <tagline>Datos, no apuestas a ciegas</tagline>
+    <season>2026/27</season>
+  </meta>
+  <topScorers>
+    <player rank="1" name="Raphinha" team="FC Barcelona" league="LaLiga" goals="12" assists="3" matches="7" per90="1.71"/>
+    <player rank="2" name="Lamine Yamal" team="FC Barcelona" league="LaLiga" goals="7" assists="4" matches="7" per90="1"/>
+    <player rank="3" name="Kylian Mbappé" team="Real Madrid" league="LaLiga" goals="7" assists="0" matches="7" per90="1"/>
+    <player rank="4" name="Sergio Camello" team="Rayo Vallecano" league="LaLiga" goals="7" assists="0" matches="7" per90="1"/>
+    <player rank="5" name="Ante Budimir" team="Osasuna" league="LaLiga" goals="6" assists="0" matches="7" per90="0.86"/>
+    <player rank="6" name="Roberto Fernández" team="Espanyol" league="LaLiga" goals="6" assists="0" matches="7" per90="0.86"/>
+    <player rank="7" name="Yassir Zabiri" team="Real Racing Club" league="LaLiga" goals="6" assists="0" matches="7" per90="0.86"/>
+    <player rank="8" name="Donyell Malen" team="AS Roma" league="Serie A" goals="6" assists="0" matches="5" per90="1.2"/>
+  </topScorers>
+  <cardRankings>
+    <player rank="1" name="David Møller Wolfe" team="Norway" league="Nations League" yellowAvg="2.00" redAvg="1.00" yellow="2" red="1" matches="1"/>
+    <player rank="2" name="Oleksandr Nazarenko" team="Ukraine" league="Nations League" yellowAvg="2.00" redAvg="1.00" yellow="2" red="1" matches="1"/>
+    <player rank="3" name="Mario Martín" team="Getafe" league="LaLiga" yellowAvg="1.00" redAvg="0.25" yellow="4" red="1" matches="4"/>
+    <player rank="4" name="Matt Crooks" team="Hull City" league="Premier League" yellowAvg="1.00" redAvg="0.00" yellow="3" red="0" matches="3"/>
+    <player rank="5" name="Artur Serobyan" team="Armenia" league="Nations League" yellowAvg="1.00" redAvg="0.00" yellow="2" red="0" matches="2"/>
+    <player rank="6" name="Constantinos Sotiriou" team="Cyprus" league="Nations League" yellowAvg="1.00" redAvg="0.00" yellow="2" red="0" matches="2"/>
+    <player rank="7" name="Diego Moreira" team="Belgium" league="Nations League" yellowAvg="1.00" redAvg="0.00" yellow="2" red="0" matches="2"/>
+    <player rank="8" name="Éric Izquierdo" team="Andorra" league="Nations League" yellowAvg="1.00" redAvg="0.00" yellow="2" red="0" matches="2"/>
+  </cardRankings>
+  <winrateTeams>
+    <team rank="1" name="FC Barcelona" league="LaLiga" winrate="100" wins="7" draws="0" losses="0" gf="31" ga="7" form="WWWWW"/>
+    <team rank="2" name="Manchester City" league="Premier League" winrate="100" wins="5" draws="0" losses="0" gf="13" ga="5" form="WWWWW"/>
+    <team rank="3" name="Borussia Dortmund" league="Bundesliga" winrate="100" wins="4" draws="0" losses="0" gf="9" ga="2" form="WWWWW"/>
+    <team rank="4" name="Arsenal" league="Premier League" winrate="80" wins="4" draws="0" losses="1" gf="8" ga="4" form="LWWWW"/>
+    <team rank="5" name="AS Roma" league="Serie A" winrate="80" wins="4" draws="1" losses="0" gf="14" ga="3" form="DWWWW"/>
+    <team rank="6" name="Inter" league="Serie A" winrate="80" wins="4" draws="1" losses="0" gf="15" ga="8" form="DWWWW"/>
+  </winrateTeams>
+  <liveOdds>
+
+  </liveOdds>
+  <upcomingOdds>
+    <match id="212653" league="Nations League" kickoff="2026-10-03T13:00:00+00:00" status="scheduled" home="Finland" away="Albania">
+
+    </match>
+    <match id="212666" league="Nations League" kickoff="2026-10-04T18:45:00+00:00" status="scheduled" home="Portugal" away="Norway">
+
+        <probs home="51.3" draw="24.9" away="23.9" over25="48.9" btts="51.1"/>
+    </match>
+    <match id="1632350" league="Friendlies" kickoff="2026-09-29T16:00:00+00:00" status="scheduled" home="Russia" away="Iran">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="1.76"/>
+          <outcome name="X" label="Empate" odd="3.73"/>
+          <outcome name="2" label="Visitante" odd="4.62"/>
+        </market>
+        <market type="overUnder" line="2.5">
+          <outcome name="over" label="Más 2.5" odd="1.94"/>
+          <outcome name="under" label="Menos 2.5" odd="1.89"/>
+        </market>
+        <market type="btts">
+          <outcome name="yes" label="Ambos marcan" odd="1.82"/>
+          <outcome name="no" label="No ambos" odd="1.86"/>
+        </market>
+        <probs home="53.8" draw="24" away="22.2" over25="50.6" btts="51.7"/>
+    </match>
+    <match id="1629002" league="Friendlies" kickoff="2026-09-30T00:00:00+00:00" status="scheduled" home="USA" away="Chile">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="1.4"/>
+          <outcome name="X" label="Empate" odd="4"/>
+          <outcome name="2" label="Visitante" odd="6.5"/>
+        </market>
+        <market type="overUnder" line="2.5">
+          <outcome name="over" label="Más 2.5" odd="1.75"/>
+          <outcome name="under" label="Menos 2.5" odd="2.05"/>
+        </market>
+        <market type="btts">
+          <outcome name="yes" label="Ambos marcan" odd="1.95"/>
+          <outcome name="no" label="No ambos" odd="1.8"/>
+        </market>
+        <probs home="65.4" draw="20.5" away="14.1" over25="53" btts="47.6"/>
+    </match>
+    <match id="1629001" league="Friendlies" kickoff="2026-09-30T01:00:00+00:00" status="scheduled" home="Mexico" away="Peru">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="1.44"/>
+          <outcome name="X" label="Empate" odd="3.9"/>
+          <outcome name="2" label="Visitante" odd="6"/>
+        </market>
+        <market type="overUnder" line="2.5">
+          <outcome name="over" label="Más 2.5" odd="2"/>
+          <outcome name="under" label="Menos 2.5" odd="1.8"/>
+        </market>
+        <market type="btts">
+          <outcome name="yes" label="Ambos marcan" odd="2.1"/>
+          <outcome name="no" label="No ambos" odd="1.67"/>
+        </market>
+        <probs home="61.1" draw="22.6" away="16.2" over25="48.1" btts="46"/>
+    </match>
+    <match id="212652" league="Nations League" kickoff="2026-10-02T18:45:00+00:00" status="scheduled" home="Faroe Islands" away="Slovakia">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="6.44"/>
+          <outcome name="X" label="Empate" odd="3.76"/>
+          <outcome name="2" label="Visitante" odd="1.51"/>
+        </market>
+        <probs home="13.7" draw="24.6" away="61.7" over25="37.7" btts="36"/>
+    </match>
+    <match id="212649" league="Nations League" kickoff="2026-10-02T18:45:00+00:00" status="scheduled" home="Poland" away="Romania">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="1.44"/>
+          <outcome name="X" label="Empate" odd="4.32"/>
+          <outcome name="2" label="Visitante" odd="6.3"/>
+        </market>
+        <probs home="46.1" draw="24.3" away="29.6" over25="45.5" btts="45.6"/>
+    </match>
+    <match id="212648" league="Nations League" kickoff="2026-10-02T18:45:00+00:00" status="scheduled" home="Bosnia &amp; Herzegovina" away="Sweden">
+        <market type="1x2">
+          <outcome name="1" label="Local" odd="3.46"/>
+          <outcome name="X" label="Empate" odd="3.79"/>
+          <outcome name="2" label="Visitante" odd="1.88"/>
+        </market>
+        <probs home="28.1" draw="23.9" away="48" over25="56.1" btts="57.9"/>
+    </match>
+  </upcomingOdds>
+  <shotLeaders>
+    <player rank="1" name="Kylian Mbappé" team="Real Madrid" league="LaLiga" shotsPerGame="5.86" sotPerGame="3.14" shots="41" sot="22" matches="7"/>
+    <player rank="2" name="Lamine Yamal" team="FC Barcelona" league="LaLiga" shotsPerGame="5.43" sotPerGame="2" shots="38" sot="14" matches="7"/>
+    <player rank="3" name="Donyell Malen" team="AS Roma" league="Serie A" shotsPerGame="4" sotPerGame="2" shots="20" sot="10" matches="5"/>
+    <player rank="4" name="Raphinha" team="FC Barcelona" league="LaLiga" shotsPerGame="3.57" sotPerGame="2.29" shots="25" sot="16" matches="7"/>
+    <player rank="5" name="Ante Budimir" team="Osasuna" league="LaLiga" shotsPerGame="2.71" sotPerGame="1.71" shots="19" sot="12" matches="7"/>
+    <player rank="6" name="Sergio Camello" team="Rayo Vallecano" league="LaLiga" shotsPerGame="2.71" sotPerGame="1.57" shots="19" sot="11" matches="7"/>
+    <player rank="7" name="Roberto Fernández" team="Espanyol" league="LaLiga" shotsPerGame="2.29" sotPerGame="0.86" shots="16" sot="6" matches="7"/>
+    <player rank="8" name="Yassir Zabiri" team="Real Racing Club" league="LaLiga" shotsPerGame="2" sotPerGame="1.14" shots="14" sot="8" matches="7"/>
+  </shotLeaders>
+  <streaks>
+    <item team="FC Barcelona" player="" value="5" label="victorias consecutivas"/>
+    <item team="Manchester City" player="" value="5" label="victorias consecutivas"/>
+    <item team="Borussia Dortmund" player="" value="5" label="victorias consecutivas"/>
+    <item team="Arsenal" player="" value="4" label="victorias consecutivas"/>
+  </streaks>
+  <valueAlerts>
+    <alert match="Portugal vs Norway" market="al menos 1 tiro a puerta de Erling Haaland" hit="77.7" note="8 a puerta en 2 partidos."/>
+    <alert match="Finland vs Albania" market="al menos 1 tiro a puerta de Joel Pohjanpalo" hit="74.4" note="5 a puerta en 1 partido."/>
+    <alert match="Bosnia &amp; Herzegovina vs Sweden" market="al menos 1 tiro a puerta de Viktor Gyökeres" hit="63.2" note="2 a puerta en 2 partidos."/>
+    <alert match="USA vs Chile" market="gana USA" hit="65.4" note="Cuota 1.40."/>
+    <alert match="Faroe Islands vs Slovakia" market="gana Slovakia" hit="61.7" note="Cuota 1.51."/>
+    <alert match="Mexico vs Peru" market="gana Mexico" hit="61.1" note="Cuota 1.44."/>
+  </valueAlerts>
+</footballCache>

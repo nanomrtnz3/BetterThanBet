@@ -1,0 +1,16 @@
+name: Actualizar datos
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pedir una actualización
+        run: curl --fail-with-body --silent --show-error --max-time 90 -X POST "${DEMO_URL%/}/api/sync" -H "Authorization: Bearer $CRON_SECRET"
+        env:
+          DEMO_URL: ${{ secrets.DEMO_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

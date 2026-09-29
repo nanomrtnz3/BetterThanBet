@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BetterThanBet — datos de fútbol, no ruido</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css?v=5" />
+  </head>
+  <body>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+
+    <div class="wrap">
+      <header class="nav">
+        <a class="brand" href="#">
+          <span class="mark">B</span>
+          <strong>BetterThanBet</strong>
+        </a>
+        <nav class="nav-links">
+          <a href="#directo">Directo</a>
+          <a href="#jugadores">Jugadores</a>
+          <a href="#winrate">Winrate</a>
+          <a href="#cuotas">Cuotas</a>
+          <a href="#valor">Apuestas</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="kicker"><span class="pulse"></span> Datos actualizados · <span id="cacheChip">cargando…</span></div>
+        <h1>Mejor que apostar: <span>ver el juego.</span></h1>
+        <p>Rankings de jugadores, winrate y cuotas en directo y a futuro.</p>
+        <div class="stats">
+          <div class="stat"><b id="statLive">—</b><span>Partidos en vivo</span></div>
+          <div class="stat"><b id="statUpcoming">—</b><span>Cuotas a futuro</span></div>
+          <div class="stat"><b id="statScorers">—</b><span>Goles del líder</span></div>
+          <div class="stat"><b id="statWin">—</b><span>Mejor winrate</span></div>
+        </div>
+      </section>
+
+      <section id="directo">
+        <div class="section-head">
+          <h2>Cuotas en directo</h2>
+          <p>1X2 y más/menos</p>
+        </div>
+        <div class="grid-3" id="liveGrid"></div>
+      </section>
+
+      <section id="jugadores">
+        <div class="section-head">
+          <h2>Jugadores</h2>
+          <p>Cada ranking se puede contraer</p>
+        </div>
+
+        <details class="fold" open>
+          <summary>
+            <span>Máximos goleadores</span>
+            <small>Goles, asistencias y goles/90</small>
+          </summary>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Jugador</th>
+                  <th>Goles</th>
+                  <th>Ast.</th>
+                  <th>/90</th>
+                  <th>PJ</th>
+                </tr>
+              </thead>
+              <tbody id="scorersBody"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="fold" open>
+          <summary>
+            <span>Ranking de tarjetas</span>
+            <small>Promedio por partido</small>
+          </summary>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Jugador</th>
+                  <th>Amar./PJ</th>
+                  <th>Roja/PJ</th>
+                  <th>A/R</th>
+                </tr>
+              </thead>
+              <tbody id="cardsBody"></tbody>
+            </table>
+          </div>
+        </details>
+
+        <details class="fold" open>
+          <summary>
+            <span>Tiros por partido</span>
+            <small>Total de disparos esta temporada</small>
+          </summary>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Jugador</th>
+                  <th>Tiros/PJ</th>
+                  <th>A puerta/PJ</th>
+                  <th>Tiros</th>
+                  <th>A puerta</th>
+                </tr>
+              </thead>
+              <tbody id="shotsBody"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section id="winrate">
+        <div class="section-head">
+          <h2>Winrate de equipos</h2>
+          <p>Forma reciente</p>
+        </div>
+        <div class="card" id="winrateList"></div>
+      </section>
+
+      <section id="cuotas">
+        <div class="section-head">
+          <h2>Cuotas a futuro</h2>
+          <p>1X2 y ambos marcan</p>
+        </div>
+        <div class="grid-3 upcoming" id="upcomingGrid"></div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Rachas</h2>
+          <p>Forma reciente de la clasificación</p>
+        </div>
+        <div class="streaks" id="streaks"></div>
+      </section>
+
+      <section id="valor">
+        <div class="section-head">
+          <h2>Apuestas propuestas</h2>
+          <p>Resultado, tiros a puerta y tarjetas, con su probabilidad de acierto</p>
+        </div>
+        <div id="alerts"></div>
+      </section>
+
+      <footer>
+        <span>BetterThanBet</span>
+      </footer>
+    </div>
+    <script type="module" src="js/app.js?v=7"></script>
+  </body>
+</html>
