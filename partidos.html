@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=10" />
+    <link rel="stylesheet" href="css/styles.css?v=11" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -23,7 +23,10 @@
           <span class="mark">B</span>
           <strong>BetterThanBet</strong>
         </a>
-        <nav class="nav-links">
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="nav-links" id="site-nav">
           <a href="index.html#directo">Directo</a>
           <a href="index.html#jugadores">Jugadores</a>
           <a href="index.html#winrate">Winrate</a>
@@ -53,6 +56,7 @@
         <p>Juega con cabeza. Esta página no fomenta el juego: muestra datos y probabilidades para informar, no para animar a apostar. Si apuestas, hazlo solo con dinero que puedas perder.</p>
       </footer>
     </div>
+    <script src="js/nav.js?v=2"></script>
     <script type="module" src="js/partidos.js?v=4"></script>
   </body>
 </html>
