@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=8" />
+    <link rel="stylesheet" href="css/styles.css?v=10" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -37,7 +37,12 @@
         <p class="kicker">Datos de ejemplo · octubre y noviembre de 2026</p>
         <h1>Partidos a dos meses.</h1>
         <p class="sub">Cinco grandes ligas, copas europeas y selecciones. Pulsa un partido para ver las cuotas y dos acciones.</p>
-        <input id="q" class="board-search" type="search" placeholder="Busca un equipo o una competición" autocomplete="off" />
+        <div class="board-tools">
+          <input id="q" class="board-search" type="search" placeholder="Busca un equipo o una competición" autocomplete="off" />
+          <select id="day" class="board-search board-day" aria-label="Fecha">
+            <option value="">Todas las fechas</option>
+          </select>
+        </div>
         <p id="count" class="sub"></p>
       </section>
 
@@ -48,6 +53,6 @@
         <p>Juega con cabeza. Esta página no fomenta el juego: muestra datos y probabilidades para informar, no para animar a apostar. Si apuestas, hazlo solo con dinero que puedas perder.</p>
       </footer>
     </div>
-    <script type="module" src="js/partidos.js?v=2"></script>
+    <script type="module" src="js/partidos.js?v=4"></script>
   </body>
 </html>

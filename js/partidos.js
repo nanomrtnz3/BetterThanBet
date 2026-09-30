@@ -119,8 +119,25 @@ const FIXTURES = buildFixtures().map((match) => ({ ...match, actions: rateValueA
 
 const board = document.querySelector("#board");
 const query = document.querySelector("#q");
+const dateSelect = document.querySelector("#day");
 const count = document.querySelector("#count");
 const openId = { current: null };
+
+function dayKey(iso) {
+  const date = new Date(iso);
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+}
+
+const seenDays = new Set();
+for (const match of FIXTURES) {
+  const key = dayKey(match.kickoff);
+  if (seenDays.has(key)) continue;
+  seenDays.add(key);
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = dayLabel(match.kickoff);
+  dateSelect.append(option);
+}
 
 function dayLabel(iso) {
   return new Date(iso).toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
@@ -154,9 +171,11 @@ function actionBlock(match) {
 
 function render() {
   const text = query.value.trim().toLocaleLowerCase("es");
+  const picked = dateSelect.value;
   const rows = FIXTURES.filter((match) => {
     const blob = `${match.home} ${match.away} ${match.league}`.toLocaleLowerCase("es");
-    return !text || blob.includes(text);
+    const sameDay = !picked || dayKey(match.kickoff) === picked;
+    return sameDay && (!text || blob.includes(text));
   });
   count.textContent = `${rows.length} partidos`;
   if (!rows.length) {
@@ -168,7 +187,7 @@ function render() {
     const day = dayLabel(match.kickoff);
     let bucket = groups.find((item) => item.day === day);
     if (!bucket) {
-      bucket = { day, comps: [] };
+      bucket = { day, key: dayKey(match.kickoff), comps: [] };
       groups.push(bucket);
     }
     let comp = bucket.comps.find((item) => item.name === match.league);
@@ -179,23 +198,26 @@ function render() {
     comp.matches.push(match);
   }
   board.innerHTML = groups
-    .map(
-      (bucket) => `<section class="day"><h2>${bucket.day}</h2>${bucket.comps
+    .map((bucket) => {
+      const total = bucket.comps.reduce((sum, comp) => sum + comp.matches.length, 0);
+      const open = picked && bucket.key === picked ? " open" : "";
+      const noun = total === 1 ? "partido" : "partidos";
+      return `<details class="day fold"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps
         .map(
           (comp) => `<h3 class="comp">${comp.name}</h3>${comp.matches
             .map((match) => {
-              const open = openId.current === match.id;
-              return `<button class="fixture" type="button" data-id="${match.id}" aria-expanded="${open}">
+              const expanded = openId.current === match.id;
+              return `<button class="fixture" type="button" data-id="${match.id}" aria-expanded="${expanded}">
                 <strong>${match.home} vs ${match.away}</strong>
                 <time>${hourLabel(match.kickoff)}</time>
               </button>${
-                open ? `<div class="fixture-panel">${oddsBlock(match)}${actionBlock(match)}</div>` : ""
+                expanded ? `<div class="fixture-panel">${oddsBlock(match)}${actionBlock(match)}</div>` : ""
               }`;
             })
             .join("")}`
         )
-        .join("")}</section>`
-    )
+        .join("")}</details>`;
+    })
     .join("");
 }
 
@@ -210,6 +232,12 @@ board.addEventListener("click", (event) => {
 query.addEventListener("input", () => {
   openId.current = null;
   render();
+});
+
+dateSelect.addEventListener("change", () => {
+  openId.current = null;
+  render();
+  if (dateSelect.value) board.querySelector("details[open]")?.scrollIntoView({ block: "start" });
 });
 
 render();
