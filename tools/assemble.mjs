@@ -343,6 +343,29 @@ export function isLiveStatus(short) {
   return LIVE_STATUS.has(short);
 }
 
+export function isFinishedStatus(status) {
+  return /^(ft|aet|pen|canc|abd|awd|wo|finished|closed|ended|complete)$/i.test(String(status || ""));
+}
+
+function kickoffMs(iso) {
+  const ms = new Date(iso || "").getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/** Ya ha empezado (con 5 min de margen por si el directo tarda en aparecer). */
+export function isPastKickoff(iso, now = Date.now()) {
+  const ms = kickoffMs(iso);
+  if (ms == null) return false;
+  return ms <= now - 5 * 60 * 1000;
+}
+
+/** Un partido no sigue en juego dos horas después del inicio. */
+export function isStaleLive(iso, now = Date.now()) {
+  const ms = kickoffMs(iso);
+  if (ms == null) return false;
+  return now - ms >= 120 * 60 * 1000;
+}
+
 export function overlayLiveOdds(live, apiFootballMatches) {
   if (!apiFootballMatches?.length) return live;
   return live.map((match) => {

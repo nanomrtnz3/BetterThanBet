@@ -14,7 +14,11 @@ import {
   buildAlerts,
   eventId,
   fixturePriority,
+  isFinishedStatus,
   isLiveStatus,
+  isPastKickoff,
+  isStaleLive,
+  kickoffOf,
   leagueId,
   mapApiFootballLive,
   mapCards,
@@ -228,13 +232,19 @@ async function refreshFixtures(leagues) {
   const from = dateShift(0);
   const to = dateShift(14);
   const liveBody = await bzzoiroGet("events/live/");
-  const liveEvents = resultsOf(liveBody).filter((event) => ids.has(Number(leagueId(event))));
+  const liveEvents = resultsOf(liveBody).filter((event) => {
+    if (!ids.has(Number(leagueId(event)))) return false;
+    const status = event.status || event.state || "";
+    if (isFinishedStatus(status)) return false;
+    return !isStaleLive(kickoffOf(event));
+  });
   const upcomingEvents = [];
   for (const league of leagues) {
     const body = await bzzoiroGet(
       `events/?league_id=${league.id}&status=notstarted&date_from=${from}&date_to=${to}&limit=${league.key === "nations" ? 40 : 12}`
     );
     for (const event of resultsOf(body)) {
+      if (isPastKickoff(kickoffOf(event))) continue;
       if (!event.league && !event.league_name) event.league_name = labels.get(Number(league.id)) || league.label;
       if (!event.league_id) event.league_id = league.id;
       upcomingEvents.push(event);
@@ -461,7 +471,10 @@ export async function syncOnce() {
   const propTeams = new Set(
     [...(stats.propShots || []), ...(stats.shots || []), ...(stats.cardPool || stats.cards || [])].map((row) => teamKey(row.team))
   );
-  const pricedOnes = [...priced.filter((item) => !isLiveStatus(item.status)), ...fromBzzoiro.filter(hasPrice)];
+  const pricedOnes = [
+    ...priced.filter((item) => !isLiveStatus(item.status) && !isFinishedStatus(item.status) && !isPastKickoff(item.kickoff)),
+    ...fromBzzoiro.filter((match) => hasPrice(match) && !isPastKickoff(match.kickoff)),
+  ];
   const nations = fromBzzoiro.filter((match) => /nations league/i.test(match.league || ""));
   const starred = [];
   const usedPlayers = new Set();
@@ -481,13 +494,13 @@ export async function syncOnce() {
   const upcoming = [];
   for (const match of [...starred, ...pricedOnes, ...otherNations]) {
     const key = `${match.home}|${match.away}`.toLowerCase();
-    if (!key.trim() || seen.has(key)) continue;
+    if (!key.trim() || seen.has(key) || isPastKickoff(match.kickoff)) continue;
     seen.add(key);
     upcoming.push(match);
     if (upcoming.length >= 8) break;
   }
   const pricedLive = priced
-    .filter((match) => isLiveStatus(match.status) && hasPrice(match))
+    .filter((match) => isLiveStatus(match.status) && hasPrice(match) && !isFinishedStatus(match.status) && !isStaleLive(match.kickoff))
     .map((match) => ({
       ...match,
       scoreHome: match.scoreHome ?? "",
