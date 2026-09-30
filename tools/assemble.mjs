@@ -435,6 +435,15 @@ export function escapeAttr(value) {
     .replaceAll("<", "&lt;");
 }
 
+function actionTags(match) {
+  const rows = [
+    match.valueActions?.safe && { kind: "probable", ...match.valueActions.safe },
+    match.valueActions?.risky && { kind: "arriesgada", ...match.valueActions.risky },
+  ].filter(Boolean);
+  if (!rows.length) return "";
+  return `\n${rows.map((row) => `        <action ${attrs(row)}/>`).join("\n")}`;
+}
+
 function attrs(pairs) {
   return Object.entries(pairs)
     .map(([key, value]) => `${key}="${escapeAttr(value)}"`)
@@ -471,7 +480,7 @@ export function toXml(model) {
         status: "scheduled",
         home: match.home,
         away: match.away,
-      })}>\n${(match.markets || []).map(market).join("\n")}${match.probs ? `\n        <probs ${attrs(match.probs)}/>` : ""}\n    </match>`
+      })}>\n${(match.markets || []).map(market).join("\n")}${match.probs ? `\n        <probs ${attrs(match.probs)}/>` : ""}${actionTags(match)}\n    </match>`
     )
     .join("\n");
 

@@ -94,6 +94,12 @@ export function parseXml(xmlText) {
       away: attr(m, "away"),
       markets: marketsOf(m),
       probs: probsOf(m),
+      actions: [...m.querySelectorAll("action")].map((a) => ({
+        kind: attr(a, "kind"),
+        market: attr(a, "market"),
+        hit: attr(a, "hit"),
+        odd: attr(a, "odd"),
+      })),
     })),
     shots: list("shotLeaders > player").map((p) => ({
       rank: Number(attr(p, "rank")),

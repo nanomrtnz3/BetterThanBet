@@ -145,6 +145,64 @@ function playersIn(match, rows) {
   });
 }
 
+function pushAction(actions, market, probability, odd, group) {
+  if (!(probability > 0) || !(probability < 1) || !(odd > 1)) return;
+  actions.push({ market, hit: roundPct(probability), odd: Number(odd.toFixed(2)), group });
+}
+
+function fairOrModel(modelValue, fairValue) {
+  return modelValue != null ? modelValue : fairValue;
+}
+
+/**
+ * Porcentaje de acierto de cada mercado con cuota.
+ * En un mercado de dos o tres resultados se reparte el margen de la casa
+ * para que las probabilidades sumen 1. Si el modelo de goles ya estimó
+ * ese resultado, se usa esa cifra. La más probable necesita al menos un 55%.
+ * La arriesgada es la cuota más alta entre el 25% y el 45%, de otro mercado.
+ */
+export function rateValueActions(match, model) {
+  const actions = [];
+  const homeOdd = oddNamed(match, "1x2", "1");
+  const drawOdd = oddNamed(match, "1x2", "X");
+  const awayOdd = oddNamed(match, "1x2", "2");
+  if (homeOdd && drawOdd && awayOdd) {
+    const [fairHome, fairDraw, fairAway] = devig([homeOdd, drawOdd, awayOdd]);
+    pushAction(actions, `gana ${match.home}`, fairOrModel(model?.home, fairHome), homeOdd, "1x2");
+    pushAction(actions, "empate", fairOrModel(model?.draw, fairDraw), drawOdd, "1x2");
+    pushAction(actions, `gana ${match.away}`, fairOrModel(model?.away, fairAway), awayOdd, "1x2");
+  }
+
+  const pairs = [
+    ["overUnder", "over", "under", "goles", "over25"],
+    ["btts", "yes", "no", "btts", "btts"],
+    ["corners", "over", "under", "corners", null],
+    ["cards", "over", "under", "cards", null],
+  ];
+  for (const [type, overName, underName, group, modelKey] of pairs) {
+    const overOdd = oddNamed(match, type, overName);
+    const underOdd = oddNamed(match, type, underName);
+    if (!overOdd || !underOdd) continue;
+    const [fairOver, fairUnder] = devig([overOdd, underOdd]);
+    const line = match.markets?.find((item) => item.type === type)?.line;
+    const noun = group === "goles" ? "goles" : group === "corners" ? "córners" : group === "cards" ? "tarjetas" : "";
+    const overText = group === "btts" ? "marcan los dos" : `más de ${line || "2.5"} ${noun}`;
+    const underText = group === "btts" ? "no marcan los dos" : `menos de ${line || "2.5"} ${noun}`;
+    const modelOver = modelKey ? model?.[modelKey] : null;
+    pushAction(actions, overText, fairOrModel(modelOver, fairOver), overOdd, group);
+    pushAction(actions, underText, fairOrModel(modelOver == null ? null : 1 - modelOver, fairUnder), underOdd, group);
+  }
+
+  const safe = actions.filter((row) => row.hit >= 55).sort((a, b) => b.hit - a.hit)[0] || null;
+  const risky = actions
+    .filter((row) => row.hit >= 25 && row.hit <= 45 && row.group !== safe?.group)
+    .sort((a, b) => b.odd - a.odd)[0] || null;
+  return {
+    safe: safe && { market: safe.market, hit: safe.hit, odd: safe.odd },
+    risky: risky && { market: risky.market, hit: risky.hit, odd: risky.odd },
+  };
+}
+
 function betOptions(match, model, odds) {
   return [
     { label: `gana ${match.home}`, probability: model.home, odd: odds.home },
@@ -220,6 +278,11 @@ export function annotateProbabilities(matches, teams = [], props = {}) {
       }
       model = table;
       fromTable = true;
+    }
+
+    if (model || homeOdd) {
+      const rated = rateValueActions(match, model);
+      if (rated.safe || rated.risky) match.valueActions = rated;
     }
 
     if (model) {

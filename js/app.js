@@ -47,6 +47,18 @@ function playerRows(rows, cells) {
     .join("");
 }
 
+function actionLines(match) {
+  const rows = match.actions || [];
+  if (!rows.length) return "";
+  const label = { probable: "Más probable", arriesgada: "Más arriesgada" };
+  return `<div class="value-pair">${rows
+    .map(
+      (row) =>
+        `<p><b>${label[row.kind] || "Acción"}.</b> ${row.market} · ${row.hit}% de acierto${row.odd ? ` · cuota ${row.odd}` : ""}</p>`
+    )
+    .join("")}</div>`;
+}
+
 function fmtKickoff(iso) {
   const d = new Date(iso);
   return d.toLocaleString("es-ES", {
@@ -132,6 +144,7 @@ function render(data) {
         </div>
         <div class="sub" style="margin-bottom:10px">${m.league}</div>
         ${probabilityLine(m)}
+        ${actionLines(m)}
         ${
           m.markets?.some((market) => market.outcomes?.length)
             ? `${market1x2(m)}
