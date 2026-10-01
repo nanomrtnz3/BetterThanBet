@@ -113,9 +113,12 @@ function hourLabel(iso) {
   return new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
-function quoteCards(label, homeName, awayName, homeValue, awayValue) {
+function quoteCards(label, homeName, awayName, homeValue, awayValue, kind = "media") {
   return `<p class="market-label">${label}</p><div class="odds">${[homeName, awayName]
-    .map((name, index) => `<div class="odd"><small>${name}</small><b>${index === 0 ? homeValue : awayValue}</b></div>`)
+    .map(
+      (name, index) =>
+        `<div class="odd"><small>${name}</small><b>${index === 0 ? homeValue : awayValue}</b><small class="odd-kind">${kind}</small></div>`
+    )
     .join("")}</div>`;
 }
 
@@ -166,7 +169,8 @@ function profile(name) {
   const record = (played) => {
     const wins = Math.round(played * (0.28 + rand() * 0.35));
     const draws = Math.round((played - wins) * (0.2 + rand() * 0.35));
-    return `${wins}-${draws}-${Math.max(0, played - wins - draws)}`;
+    const losses = Math.max(0, played - wins - draws);
+    return { wins, draws, losses, text: `${wins} V · ${draws} E · ${losses} D` };
   };
   const played = 10 + Math.floor(rand() * 8);
   const goalsFor = rate(0.9, 1.5);
@@ -178,8 +182,8 @@ function profile(name) {
     goalsAgainst1: rate(0.3, 0.6),
     goalsFor2: rate(0.4, 0.8),
     goalsAgainst2: rate(0.35, 0.7),
-    goalsForBins: split(goalsFor, 9),
-    goalsAgainstBins: split(goalsAgainst, 9),
+    goalsForBins: split(goalsFor, 6),
+    goalsAgainstBins: split(goalsAgainst, 6),
     cornersFor: rate(3.4, 3.2),
     cornersAgainst: rate(3.2, 3),
     cornersFor1: rate(1.4, 1.6),
@@ -295,10 +299,6 @@ function linesFrom(home, away, rows) {
   return rows.map(([label, key]) => ({ label, home: home[key], away: away[key] }));
 }
 
-function wins(record) {
-  return Number(String(record).split("-")[0]) || 0;
-}
-
 function section(match, title, note, lines) {
   const cards = lines
     .map((line) =>
@@ -307,7 +307,8 @@ function section(match, title, note, lines) {
         match.home,
         match.away,
         line.homeText ?? num(line.home),
-        line.awayText ?? num(line.away)
+        line.awayText ?? num(line.away),
+        line.kind
       )
     )
     .join("");
@@ -317,26 +318,33 @@ function section(match, title, note, lines) {
 function statsBlock(match) {
   const home = profile(match.home);
   const away = profile(match.away);
-  const bins = ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90"].flatMap(
-    (label, index) => [
-      {
-        label: `${label} a favor`,
-        home: home.goalsForBins[index],
-        away: away.goalsForBins[index],
-      },
-      {
-        label: `${label} en contra`,
-        home: home.goalsAgainstBins[index],
-        away: away.goalsAgainstBins[index],
-      },
-    ]
-  );
+  const windows = [
+    [0, 15],
+    [16, 30],
+    [31, 45],
+    [46, 60],
+    [61, 75],
+    [76, 90],
+  ];
+  const bins = windows.flatMap(([from, to], index) => [
+    {
+      label: `Desde el minuto ${from} al ${to}, a favor`,
+      home: home.goalsForBins[index],
+      away: away.goalsForBins[index],
+    },
+    {
+      label: `Desde el minuto ${from} al ${to}, en contra`,
+      home: home.goalsAgainstBins[index],
+      away: away.goalsAgainstBins[index],
+    },
+  ]);
   const recordLine = (label, homeRecord, awayRecord) => ({
     label,
-    home: wins(homeRecord),
-    away: wins(awayRecord),
-    homeText: homeRecord,
-    awayText: awayRecord,
+    home: homeRecord.wins,
+    away: awayRecord.wins,
+    homeText: homeRecord.text,
+    awayText: awayRecord.text,
+    kind: "registro",
   });
   const sections = [
     section(match, "Goles", "Por partido", [
@@ -357,8 +365,8 @@ function statsBlock(match) {
       ["En contra, 1.ª parte", "cornersAgainst1"],
       ["A favor, 2.ª parte", "cornersFor2"],
       ["En contra, 2.ª parte", "cornersAgainst2"],
-      ["A favor, primeros 10 min", "cornersFor10"],
-      ["En contra, primeros 10 min", "cornersAgainst10"],
+      ["Desde el minuto 0 al 15, a favor", "cornersFor10"],
+      ["Desde el minuto 0 al 15, en contra", "cornersAgainst10"],
     ])),
     section(match, "Tarjetas", "Recibidas y provocadas", linesFrom(home, away, [
       ["Recibidas", "cardsFor"],
@@ -367,8 +375,8 @@ function statsBlock(match) {
       ["Provocadas, 1.ª parte", "cardsAgainst1"],
       ["Recibidas, 2.ª parte", "cardsFor2"],
       ["Provocadas, 2.ª parte", "cardsAgainst2"],
-      ["Recibidas, primeros 10 min", "cardsFor10"],
-      ["Provocadas, primeros 10 min", "cardsAgainst10"],
+      ["Desde el minuto 0 al 15, recibidas", "cardsFor10"],
+      ["Desde el minuto 0 al 15, provocadas", "cardsAgainst10"],
       ["Rojas a favor", "redsFor"],
       ["Rojas en contra", "redsAgainst"],
     ])),
@@ -432,13 +440,13 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "foulsFor2"],
       ["En contra, 2.ª parte", "foulsAgainst2"],
     ])),
-    section(match, "Resultados", "Victorias-empates-derrotas", [
+    section(match, "Resultados", "Victorias, empates y derrotas", [
       recordLine("Partido", home.results, away.results),
       recordLine("Al descanso", home.resultsHalf, away.resultsHalf),
-      recordLine("Primeros 10 min", home.results10, away.results10),
+      recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
     ]),
   ];
-  return `<p class="sub stat-note">Medias de ejemplo por partido. Todavía no salen de una fuente real. Las acciones de cada apartado salen de esas medias.</p>${sections.join("")}`;
+  return `<p class="sub stat-note">El número azul es la media por partido, no una cuota. Una cuota de apuesta es siempre mayor que 1. Los tramos son de 15 minutos (desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90) porque la fuente parte el partido así. El registro se lee como victorias, empates y derrotas.</p>${sections.join("")}`;
 }
 
 function render() {

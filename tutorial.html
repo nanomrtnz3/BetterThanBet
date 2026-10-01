@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=12" />
+    <link rel="stylesheet" href="css/styles.css?v=14" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -38,19 +38,27 @@
         </nav>
       </header>
 
+      <div class="guide-layout">
+        <nav class="guide-index" aria-label="Índice de la guía">
+          <p>En esta guía</p>
+          <a href="#moverte">Moverte</a>
+          <a href="#portada">La portada</a>
+          <a href="#partidos">La página de partidos</a>
+          <a href="#acciones">Qué es una acción de valor</a>
+        </nav>
       <article class="guide">
         <p class="kicker">Guía</p>
         <h1>Cómo usar BetterThanBet.</h1>
         <p>La página enseña datos y probabilidades. No te dice que apuestes. Si lo haces, que sea con dinero que puedas perder.</p>
 
-        <h2>Moverte</h2>
+        <h2 id="moverte">Moverte</h2>
         <ol>
           <li>Arriba, el menú salta a cada bloque de la portada: directo, jugadores, winrate, partidos a futuro y acciones en juego.</li>
           <li>En el móvil el menú se esconde. Las tres rayas lo abren.</li>
           <li>El botón verde <strong>Partidos</strong> abre la agenda de los próximos dos meses.</li>
         </ol>
 
-        <h2>La portada</h2>
+        <h2 id="portada">La portada</h2>
         <ul>
           <li><strong>Cuotas en directo</strong> son los partidos que se están jugando ahora, con el marcador y las cuotas de resultado y de goles.</li>
           <li><strong>Jugadores</strong> y <strong>winrate</strong> son rankings. Cada tabla se puede contraer.</li>
@@ -58,23 +66,26 @@
           <li><strong>Acciones de valor en directo</strong> solo existen si hay un partido en juego. Si no hay ninguno, la sección lo dice y se queda vacía.</li>
         </ul>
 
-        <h2>La página de partidos</h2>
+        <h2 id="partidos">La página de partidos</h2>
         <ol>
           <li>Los días salen cerrados. Ábrelos, o elige una fecha en el selector de al lado del buscador: ese día se abre solo.</li>
           <li>El buscador filtra por equipo o competición.</li>
           <li>Pulsa un partido. Cada apartado (goles, córners, tarjetas y el resto) se abre solo y, dentro, muestra las cifras de los dos equipos y sus dos acciones de valor.</li>
         </ol>
-        <p>Las medias de goles, córners, tarjetas y el resto, en esa pantalla, son cifras de ejemplo. La agenda todavía no está conectada a una fuente real.</p>
+        <p>El número azul de cada tarjeta es una media por partido, no una cuota. Una cuota de apuesta es siempre mayor que 1. Por eso el registro no se escribe con guiones: se lee como victorias, empates y derrotas (5 V · 5 E · 6 D).</p>
+        <p>Los goles por tramo van de 15 en 15 minutos: desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90. La fuente parte el partido así, no cada 10 minutos. La etiqueta dice «Desde el minuto x al x, a favor» o «en contra».</p>
+        <p>Esas medias son cifras de ejemplo. La agenda todavía no está conectada a una fuente real.</p>
 
-        <h2>Qué es una acción de valor</h2>
+        <h2 id="acciones">Qué es una acción de valor</h2>
         <p>No es un pronóstico ni una recomendación. Es una cuota traducida a probabilidad, después de quitar el margen que se queda la casa.</p>
         <div class="guide-card">
           <p><b>Más probable.</b> La opción con el porcentaje más alto, siempre que llegue al menos al 55%.</p>
           <p><b>Más arriesgada.</b> De otro mercado. Si la probable es el resultado, la arriesgada sale de goles, córners o tarjetas. Es la cuota más alta cuyo acierto queda entre el 25% y el 45%.</p>
         </div>
         <p>El cálculo, en corto: cada cuota se pasa a probabilidad (1 dividido por la cuota). Esas cifras suman más de 100% porque la casa cobra margen. Se reparte ese margen para que sumen 100%. Ese porcentaje es el de acierto que ves al lado.</p>
-        <p>En el inicio solo se calculan con las cuotas del partido en directo. En la agenda, cada apartado tiene las suyas: comparan qué equipo llega más alto en ese dato y, a partir de ahí, marcan la opción más probable y la más arriesgada.</p>
+        <p>En el inicio solo se calculan con las cuotas del partido en directo, y esa cuota es siempre mayor que 1. En la agenda, cada apartado compara qué equipo tiene la media más alta y, a partir de ahí, marca la opción más probable y la más arriesgada. La cuota de esa acción también es mayor que 1: no es el número azul de la tarjeta.</p>
       </article>
+      </div>
 
       <footer>
         <p>© 2026 BetterThanBet. Todos los derechos reservados.</p>

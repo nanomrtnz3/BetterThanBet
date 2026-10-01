@@ -264,6 +264,7 @@ section { margin-top: 56px; scroll-margin-top: 92px; }
 }
 .odd small { display: block; color: var(--muted); font-size: 0.72rem; }
 .odd b { color: var(--cyan); font-variant-numeric: tabular-nums; }
+.odd-kind { margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.66rem; }
 
 table { width: 100%; border-collapse: collapse; min-width: 560px; }
 th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
@@ -392,9 +393,30 @@ footer p:last-child { flex: 1 1 280px; max-width: 52ch; margin-left: auto; text-
 table.cmp { min-width: 0; }
 table.cmp th, table.cmp td { padding: 8px 6px; font-size: 0.84rem; }
 table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-.guide { padding: 36px 8px 8px; display: grid; gap: 18px; max-width: 760px; }
+.guide-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 760px);
+  gap: 36px;
+  align-items: start;
+  padding-top: 28px;
+}
+.guide-index {
+  position: sticky;
+  top: 108px;
+  display: grid;
+  gap: 10px;
+}
+.guide-index p {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.guide-index a { color: var(--muted); text-decoration: none; font-weight: 650; }
+.guide-index a:hover { color: var(--lime); }
+.guide { padding: 8px 8px 8px; display: grid; gap: 18px; max-width: 760px; }
 .guide h1 { font-family: var(--display); font-size: clamp(2.2rem, 5vw, 3.6rem); letter-spacing: -0.04em; line-height: 0.95; }
-.guide h2 { font-family: var(--display); font-size: 1.45rem; letter-spacing: -0.03em; margin-top: 12px; }
+.guide h2 { font-family: var(--display); font-size: 1.45rem; letter-spacing: -0.03em; margin-top: 12px; scroll-margin-top: 110px; }
 .guide p, .guide li { color: var(--muted); }
 .guide ol, .guide ul { display: grid; gap: 8px; padding-left: 1.2rem; }
 .guide strong { color: var(--text); }
@@ -407,6 +429,8 @@ table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: rig
   .grid-2 { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
+  .guide-layout { grid-template-columns: 1fr; gap: 18px; }
+  .guide-index { position: static; }
   .stats { grid-template-columns: 1fr; }
   .future-card { flex-direction: column; align-items: flex-start; }
   .nav-toggle { display: flex; }
