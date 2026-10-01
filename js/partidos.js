@@ -88,6 +88,7 @@ const query = document.querySelector("#q");
 const dateSelect = document.querySelector("#day");
 const count = document.querySelector("#count");
 const openId = { current: null };
+const openDay = { current: null };
 
 function dayKey(iso) {
   const date = new Date(iso);
@@ -189,11 +190,8 @@ function priceLines(match, title, lines) {
   });
 }
 
-function betCard(side, kind) {
-  const clue = kind === "registro"
-    ? `Registro de ejemplo: ${side.figure}.`
-    : `Media de ejemplo: ${side.figure} por partido.`;
-  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}. ${clue}</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div></div>`;
+function betCard(side) {
+  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}.</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div></div>`;
 }
 
 function actionsHtml(rows) {
@@ -364,7 +362,7 @@ function linesFrom(home, away, rows) {
 function section(match, title, note, lines) {
   const rows = priceLines(match, title, lines);
   const cards = rows
-    .map((row) => `<p class="market-label">${row.label}</p><div class="odds bets">${betCard(row.home, row.kind)}${betCard(row.away, row.kind)}</div>`)
+    .map((row) => `<p class="market-label">${row.label}</p><div class="odds bets">${betCard(row.home)}${betCard(row.away)}</div>`)
     .join("");
   return fold(title, note, `${cards}${actionsHtml(rows)}`);
 }
@@ -500,7 +498,7 @@ function statsBlock(match) {
       recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
     ]),
   ];
-  return `<p class="sub stat-note">Encima de cada recuadro está la apuesta. El número azul es la cuota, siempre mayor que 1: cuanto más baja, más probable es. La media o el registro van en el texto, solo para explicar de dónde sale. Los tramos son de 15 minutos.</p>${sections.join("")}`;
+  return `<p class="sub stat-note">Encima de cada recuadro está la apuesta. El número azul es la cuota, siempre mayor que 1: cuanto más baja, más probable es. Los tramos son de 15 minutos.</p>${sections.join("")}`;
 }
 
 function render() {
@@ -535,9 +533,9 @@ function render() {
     .map((bucket) => {
       const total = bucket.comps.reduce((sum, comp) => sum + comp.matches.length, 0);
       const holdsOpenMatch = bucket.comps.some((comp) => comp.matches.some((match) => match.id === openId.current));
-      const open = (picked && bucket.key === picked) || holdsOpenMatch ? " open" : "";
+      const open = (picked && bucket.key === picked) || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
       const noun = total === 1 ? "partido" : "partidos";
-      return `<details class="day fold"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps
+      return `<details class="day fold" data-day="${bucket.key}"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps
         .map(
           (comp) => `<h3 class="comp">${comp.name}</h3>${comp.matches
             .map((match) => {
@@ -559,6 +557,7 @@ function render() {
 board.addEventListener("click", (event) => {
   const button = event.target.closest(".fixture");
   if (!button) return;
+  openDay.current = button.closest("details.day")?.dataset.day || openDay.current;
   openId.current = openId.current === button.dataset.id ? null : button.dataset.id;
   render();
   document.querySelector(`[data-id="${CSS.escape(openId.current || "")}"]`)?.scrollIntoView({ block: "nearest" });
@@ -566,11 +565,13 @@ board.addEventListener("click", (event) => {
 
 query.addEventListener("input", () => {
   openId.current = null;
+  openDay.current = null;
   render();
 });
 
 dateSelect.addEventListener("change", () => {
   openId.current = null;
+  openDay.current = dateSelect.value || null;
   render();
   if (dateSelect.value) board.querySelector("details[open]")?.scrollIntoView({ block: "start" });
 });
