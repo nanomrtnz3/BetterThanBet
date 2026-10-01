@@ -113,41 +113,103 @@ function hourLabel(iso) {
   return new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
-function quoteCards(label, homeName, awayName, homeValue, awayValue, kind = "media") {
-  return `<p class="market-label">${label}</p><div class="odds">${[homeName, awayName]
-    .map(
-      (name, index) =>
-        `<div class="odd"><small>${name}</small><b>${index === 0 ? homeValue : awayValue}</b><small class="odd-kind">${kind}</small></div>`
-    )
-    .join("")}</div>`;
+function betWhat(section, label) {
+  if (section === "Resultados") {
+    if (label === "Partido") return "victorias en el partido";
+    if (label === "Al descanso") return "victorias al descanso";
+    return "victorias desde el minuto 0 al 15";
+  }
+  const noun = {
+    Goles: "goles",
+    Córners: "córners",
+    Tarjetas: "tarjetas",
+    "Fueras de juego": "fueras de juego",
+    Remates: "remates",
+    "Remates a puerta": "remates a puerta",
+    "Saques de puerta": "saques de puerta",
+    "Saques de banda": "saques de banda",
+    Entradas: "entradas",
+    "Tiros libres": "tiros libres",
+    Faltas: "faltas",
+  }[section] || "ese dato";
+  if (label.startsWith("Desde el minuto")) {
+    const range = label.split(",")[0].replace("Desde", "desde");
+    if (label.endsWith("recibidas")) return `tarjetas recibidas, ${range}`;
+    if (label.endsWith("provocadas")) return `tarjetas provocadas, ${range}`;
+    if (label.endsWith("en contra")) return `${noun} en contra, ${range}`;
+    return `${noun} a favor, ${range}`;
+  }
+  const named = {
+    Anotados: `${noun} anotados por partido`,
+    Recibidos: `${noun} recibidos por partido`,
+    "Anotados, 1.ª parte": `${noun} anotados en la primera parte`,
+    "Recibidos, 1.ª parte": `${noun} recibidos en la primera parte`,
+    "Anotados, 2.ª parte": `${noun} anotados en la segunda parte`,
+    "Recibidos, 2.ª parte": `${noun} recibidos en la segunda parte`,
+    "A favor": `${noun} a favor por partido`,
+    "En contra": `${noun} en contra por partido`,
+    "A favor, 1.ª parte": `${noun} a favor en la primera parte`,
+    "En contra, 1.ª parte": `${noun} en contra en la primera parte`,
+    "A favor, 2.ª parte": `${noun} a favor en la segunda parte`,
+    "En contra, 2.ª parte": `${noun} en contra en la segunda parte`,
+    Recibidas: "tarjetas que le sacan al equipo, por partido",
+    Provocadas: "tarjetas que el equipo provoca, por partido",
+    "Recibidas, 1.ª parte": "tarjetas que le sacan en la primera parte",
+    "Provocadas, 1.ª parte": "tarjetas que provoca en la primera parte",
+    "Recibidas, 2.ª parte": "tarjetas que le sacan en la segunda parte",
+    "Provocadas, 2.ª parte": "tarjetas que provoca en la segunda parte",
+    "Rojas a favor": "tarjetas rojas a favor por partido",
+    "Rojas en contra": "tarjetas rojas en contra por partido",
+    "Al equipo": "fueras de juego pitados al equipo, por partido",
+    "Al rival": "fueras de juego pitados al rival, por partido",
+  };
+  return named[label] || `${noun}, ${label.toLowerCase()}`;
 }
 
-function sectionActions(match, title, lines) {
+function priceLines(match, title, lines) {
   const rand = mulberry32(hashName(`${match.id}:${title}`) || 1);
-  const actions = [];
-  for (const line of lines) {
+  const hit = (value) => Math.round(value * 1000) / 10;
+  return lines.flatMap((line) => {
     const home = Number(line.home);
     const away = Number(line.away);
     const total = home + away;
-    if (!(total > 0)) continue;
+    if (!(total > 0)) return [];
     const pHome = Math.min(0.82, Math.max(0.18, home / total));
-    const homeOdd = decimal(pHome, rand);
-    const awayOdd = decimal(1 - pHome, rand);
+    const homeOdd = Math.max(1.01, decimal(pHome, rand));
+    const awayOdd = Math.max(1.01, decimal(1 - pHome, rand));
     const [fairHome, fairAway] = devig([homeOdd, awayOdd]);
-    const hit = (value) => Math.round(value * 1000) / 10;
-    actions.push({ market: `${line.label}: más ${match.home}`, hit: hit(fairHome), odd: homeOdd, group: line.label });
-    actions.push({ market: `${line.label}: más ${match.away}`, hit: hit(fairAway), odd: awayOdd, group: line.label });
-  }
+    const what = betWhat(title, line.label);
+    const side = (team, rival, odd, fair, figure) => ({ team, rival, odd, hit: hit(fair), what, figure, label: line.label });
+    return [{
+      label: line.label,
+      kind: line.kind,
+      home: side(match.home, match.away, homeOdd, fairHome, line.homeText ?? num(line.home)),
+      away: side(match.away, match.home, awayOdd, fairAway, line.awayText ?? num(line.away)),
+    }];
+  });
+}
+
+function betCard(side, kind) {
+  const clue = kind === "registro"
+    ? `Registro de ejemplo: ${side.figure}.`
+    : `Media de ejemplo: ${side.figure} por partido.`;
+  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}. ${clue}</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div></div>`;
+}
+
+function actionsHtml(rows) {
+  const actions = rows.flatMap((row) => [
+    { market: `${row.label}: más ${row.home.team}`, hit: row.home.hit, odd: row.home.odd, group: row.label },
+    { market: `${row.label}: más ${row.away.team}`, hit: row.away.hit, odd: row.away.odd, group: row.label },
+  ]);
   const safe = actions.filter((row) => row.hit >= 55).sort((a, b) => b.hit - a.hit)[0] || null;
-  const risky =
-    actions
-      .filter((row) => row.hit >= 25 && row.hit <= 45 && row.group !== safe?.group)
-      .sort((a, b) => b.odd - a.odd)[0] || null;
+  const risky = actions
+    .filter((row) => row.hit >= 25 && row.hit <= 45 && row.group !== safe?.group)
+    .sort((a, b) => b.odd - a.odd)[0] || null;
   const text = (kind, row) =>
     row ? `<p><b>${kind}.</b> ${row.market} · ${row.hit}% de acierto · cuota ${row.odd.toFixed(2)}</p>` : "";
   const body = safe || risky
     ? `<div class="value-pair">${text("Más probable", safe)}${text("Más arriesgada", risky)}</div>`
-    : `<p class="sub">Con estas cifras no hay una acción clara.</p>`;
+    : `<p class="sub">Con estas cuotas no hay una acción clara.</p>`;
   return `<p class="market-label">Acciones de valor</p>${body}`;
 }
 
@@ -300,19 +362,11 @@ function linesFrom(home, away, rows) {
 }
 
 function section(match, title, note, lines) {
-  const cards = lines
-    .map((line) =>
-      quoteCards(
-        line.label,
-        match.home,
-        match.away,
-        line.homeText ?? num(line.home),
-        line.awayText ?? num(line.away),
-        line.kind
-      )
-    )
+  const rows = priceLines(match, title, lines);
+  const cards = rows
+    .map((row) => `<p class="market-label">${row.label}</p><div class="odds bets">${betCard(row.home, row.kind)}${betCard(row.away, row.kind)}</div>`)
     .join("");
-  return fold(title, note, `${cards}${sectionActions(match, title, lines)}`);
+  return fold(title, note, `${cards}${actionsHtml(rows)}`);
 }
 
 function statsBlock(match) {
@@ -446,7 +500,7 @@ function statsBlock(match) {
       recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
     ]),
   ];
-  return `<p class="sub stat-note">El número azul es la media por partido, no una cuota. Una cuota de apuesta es siempre mayor que 1. Los tramos son de 15 minutos (desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90) porque la fuente parte el partido así. El registro se lee como victorias, empates y derrotas.</p>${sections.join("")}`;
+  return `<p class="sub stat-note">Encima de cada recuadro está la apuesta. El número azul es la cuota, siempre mayor que 1: cuanto más baja, más probable es. La media o el registro van en el texto, solo para explicar de dónde sale. Los tramos son de 15 minutos.</p>${sections.join("")}`;
 }
 
 function render() {

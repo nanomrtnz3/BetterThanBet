@@ -265,6 +265,11 @@ section { margin-top: 56px; scroll-margin-top: 92px; }
 .odd small { display: block; color: var(--muted); font-size: 0.72rem; }
 .odd b { color: var(--cyan); font-variant-numeric: tabular-nums; }
 .odd-kind { margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.66rem; }
+.odds.bets { grid-template-columns: repeat(2, 1fr); align-items: stretch; }
+.bet { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bet p { color: var(--muted); font-size: 0.82rem; line-height: 1.35; margin: 0; }
+.bet p b { color: var(--text); }
+.bet .odd { margin-top: auto; }
 
 table { width: 100%; border-collapse: collapse; min-width: 560px; }
 th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
@@ -431,6 +436,7 @@ table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: rig
 @media (max-width: 720px) {
   .guide-layout { grid-template-columns: 1fr; gap: 18px; }
   .guide-index { position: static; }
+  .odds.bets { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr; }
   .future-card { flex-direction: column; align-items: flex-start; }
   .nav-toggle { display: flex; }

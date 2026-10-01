@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=14" />
+    <link rel="stylesheet" href="css/styles.css?v=15" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -70,10 +70,10 @@
         <ol>
           <li>Los días salen cerrados. Ábrelos, o elige una fecha en el selector de al lado del buscador: ese día se abre solo.</li>
           <li>El buscador filtra por equipo o competición.</li>
-          <li>Pulsa un partido. Cada apartado (goles, córners, tarjetas y el resto) se abre solo y, dentro, muestra las cifras de los dos equipos y sus dos acciones de valor.</li>
+          <li>Pulsa un partido. Cada apartado se abre solo. Encima de cada recuadro se explica la apuesta y el número azul es la cuota.</li>
         </ol>
-        <p>El número azul de cada tarjeta es una media por partido, no una cuota. Una cuota de apuesta es siempre mayor que 1. Por eso el registro no se escribe con guiones: se lee como victorias, empates y derrotas (5 V · 5 E · 6 D).</p>
-        <p>Los goles por tramo van de 15 en 15 minutos: desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90. La fuente parte el partido así, no cada 10 minutos. La etiqueta dice «Desde el minuto x al x, a favor» o «en contra».</p>
+        <p>La cuota es siempre mayor que 1. Cuanto más baja, más probable se considera esa opción. La media o el registro (5 V · 4 E · 7 D) están en el texto de encima, no dentro del recuadro.</p>
+        <p>Los goles por tramo van de 15 en 15 minutos: desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90. La fuente parte el partido así, no cada 10 minutos.</p>
         <p>Esas medias son cifras de ejemplo. La agenda todavía no está conectada a una fuente real.</p>
 
         <h2 id="acciones">Qué es una acción de valor</h2>
@@ -83,7 +83,7 @@
           <p><b>Más arriesgada.</b> De otro mercado. Si la probable es el resultado, la arriesgada sale de goles, córners o tarjetas. Es la cuota más alta cuyo acierto queda entre el 25% y el 45%.</p>
         </div>
         <p>El cálculo, en corto: cada cuota se pasa a probabilidad (1 dividido por la cuota). Esas cifras suman más de 100% porque la casa cobra margen. Se reparte ese margen para que sumen 100%. Ese porcentaje es el de acierto que ves al lado.</p>
-        <p>En el inicio solo se calculan con las cuotas del partido en directo, y esa cuota es siempre mayor que 1. En la agenda, cada apartado compara qué equipo tiene la media más alta y, a partir de ahí, marca la opción más probable y la más arriesgada. La cuota de esa acción también es mayor que 1: no es el número azul de la tarjeta.</p>
+        <p>En el inicio se calculan con las cuotas del partido en directo. En la agenda, el número azul de cada recuadro es la cuota de esa apuesta. Debajo, el apartado marca cuál es la más probable y cuál la más arriesgada.</p>
       </article>
       </div>
 
