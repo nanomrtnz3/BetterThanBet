@@ -1,4 +1,4 @@
-import { rateValueActions } from "../tools/probability.mjs";
+import { devig } from "../tools/probability.mjs";
 
 const COMPS = [
   { name: "Premier League", order: 1, teams: ["Arsenal", "Liverpool", "Manchester City", "Chelsea", "Tottenham", "Newcastle", "Aston Villa", "Brighton"] },
@@ -36,43 +36,10 @@ function decimal(probability, rand) {
   return Math.round((margin / Math.max(0.06, probability)) * 100) / 100;
 }
 
-function splitThree(rand, favorite) {
-  let home = favorite ? 0.56 + rand() * 0.16 : 0.3 + rand() * 0.2;
-  let draw = 0.16 + rand() * 0.1;
-  let away = 1 - home - draw;
-  if (away < 0.08) {
-    away = 0.08;
-    const scale = (1 - away) / (home + draw);
-    home *= scale;
-    draw *= scale;
-  }
-  return [home, draw, away];
-}
-
-function marketsFor(rand, withOdds) {
-  if (!withOdds) return [];
-  const [home, draw, away] = splitThree(rand, rand() > 0.35);
-  const over = 0.38 + rand() * 0.28;
-  const btts = 0.4 + rand() * 0.22;
-  const corners = 0.42 + rand() * 0.16;
-  const cards = 0.4 + rand() * 0.2;
-  const cornerLine = rand() > 0.5 ? "9.5" : "10.5";
-  const cardLine = rand() > 0.5 ? "4.5" : "5.5";
-  return [
-    {
-      type: "1x2",
-      line: "",
-      outcomes: [
-        { name: "1", label: "Local", odd: decimal(home, rand) },
-        { name: "X", label: "Empate", odd: decimal(draw, rand) },
-        { name: "2", label: "Visitante", odd: decimal(away, rand) },
-      ],
-    },
-    { type: "overUnder", line: "2.5", outcomes: [{ name: "over", label: "Más 2.5", odd: decimal(over, rand) }, { name: "under", label: "Menos 2.5", odd: decimal(1 - over, rand) }] },
-    { type: "btts", line: "", outcomes: [{ name: "yes", label: "Ambos marcan", odd: decimal(btts, rand) }, { name: "no", label: "No ambos", odd: decimal(1 - btts, rand) }] },
-    { type: "corners", line: cornerLine, outcomes: [{ name: "over", label: `Más ${cornerLine}`, odd: decimal(corners, rand) }, { name: "under", label: `Menos ${cornerLine}`, odd: decimal(1 - corners, rand) }] },
-    { type: "cards", line: cardLine, outcomes: [{ name: "over", label: `Más ${cardLine}`, odd: decimal(cards, rand) }, { name: "under", label: `Menos ${cardLine}`, odd: decimal(1 - cards, rand) }] },
-  ];
+// Conserva el sorteo de la agenda al dejar de generar las cuotas antiguas.
+function burnOldMarkets(rand, withOdds) {
+  if (!withOdds) return;
+  for (let i = 0; i < 20; i += 1) rand();
 }
 
 function kickoff(day, hour, minute) {
@@ -87,7 +54,7 @@ function buildFixtures() {
     const shuffled = [...comp.teams].sort(() => rand() - 0.5);
     hours.forEach((hour, index) => {
       const minute = rand() > 0.5 ? 0 : 30;
-      const withOdds = comp.name !== "Amistosos" || day < "2026-11-14";
+      burnOldMarkets(rand, comp.name !== "Amistosos" || day < "2026-11-14");
       fixtures.push({
         id: `demo-${n++}`,
         league: comp.name,
@@ -95,7 +62,6 @@ function buildFixtures() {
         home: shuffled[index * 2],
         away: shuffled[index * 2 + 1],
         kickoff: kickoff(day, hour, minute),
-        markets: marketsFor(rand, withOdds),
       });
     });
   };
@@ -115,7 +81,7 @@ function buildFixtures() {
   return fixtures.sort((a, b) => a.kickoff.localeCompare(b.kickoff) || a.order - b.order || a.home.localeCompare(b.home, "es"));
 }
 
-const FIXTURES = buildFixtures().map((match) => ({ ...match, actions: rateValueActions(match, null) }));
+const FIXTURES = buildFixtures();
 
 const board = document.querySelector("#board");
 const query = document.querySelector("#q");
@@ -147,28 +113,39 @@ function hourLabel(iso) {
   return new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
-function oddsBlock(match) {
-  if (!match.markets.length) return `<p class="sub">Cuota aún no publicada.</p>`;
-  return match.markets
-    .map((market) => {
-      const title = { "1x2": "Resultado", overUnder: "Goles", btts: "Ambos marcan", corners: "Córners", cards: "Tarjetas" }[market.type];
-      return `<p class="market-label">${title}</p><div class="odds">${market.outcomes
-        .map((item) => `<div class="odd"><small>${item.label}</small><b>${item.odd.toFixed(2)}</b></div>`)
-        .join("")}</div>`;
-    })
-    .join("");
+function quoteCards(label, homeName, awayName, homeValue, awayValue) {
+  return `<p class="market-label">${label}</p><div class="odds">${[homeName, awayName]
+    .map((name, index) => `<div class="odd"><small>${name}</small><b>${index === 0 ? homeValue : awayValue}</b></div>`)
+    .join("")}</div>`;
 }
 
-function actionBlock(match) {
-  const { safe, risky } = match.actions;
-  const line = (kind, row) =>
-    row
-      ? `<p><b>${kind}.</b> ${row.market} · ${row.hit}% de acierto · cuota ${row.odd.toFixed(2)}</p>`
-      : "";
+function sectionActions(match, title, lines) {
+  const rand = mulberry32(hashName(`${match.id}:${title}`) || 1);
+  const actions = [];
+  for (const line of lines) {
+    const home = Number(line.home);
+    const away = Number(line.away);
+    const total = home + away;
+    if (!(total > 0)) continue;
+    const pHome = Math.min(0.82, Math.max(0.18, home / total));
+    const homeOdd = decimal(pHome, rand);
+    const awayOdd = decimal(1 - pHome, rand);
+    const [fairHome, fairAway] = devig([homeOdd, awayOdd]);
+    const hit = (value) => Math.round(value * 1000) / 10;
+    actions.push({ market: `${line.label}: más ${match.home}`, hit: hit(fairHome), odd: homeOdd, group: line.label });
+    actions.push({ market: `${line.label}: más ${match.away}`, hit: hit(fairAway), odd: awayOdd, group: line.label });
+  }
+  const safe = actions.filter((row) => row.hit >= 55).sort((a, b) => b.hit - a.hit)[0] || null;
+  const risky =
+    actions
+      .filter((row) => row.hit >= 25 && row.hit <= 45 && row.group !== safe?.group)
+      .sort((a, b) => b.odd - a.odd)[0] || null;
+  const text = (kind, row) =>
+    row ? `<p><b>${kind}.</b> ${row.market} · ${row.hit}% de acierto · cuota ${row.odd.toFixed(2)}</p>` : "";
   const body = safe || risky
-    ? `<div class="value-pair">${line("Más probable", safe)}${line("Más arriesgada", risky)}</div>`
-    : `<p class="sub">Con estas cuotas no hay una acción clara.</p>`;
-  return fold("Acciones de valor", "La más probable y la más arriesgada", body);
+    ? `<div class="value-pair">${text("Más probable", safe)}${text("Más arriesgada", risky)}</div>`
+    : `<p class="sub">Con estas cifras no hay una acción clara.</p>`;
+  return `<p class="market-label">Acciones de valor</p>${body}`;
 }
 
 const profiles = new Map();
@@ -310,39 +287,70 @@ function num(value) {
   return Number(value).toFixed(Math.abs(value) < 0.3 ? 2 : 1);
 }
 
-function pairRows(home, away, rows) {
-  return rows
-    .map(([label, key]) => `<tr><td>${label}</td><td>${num(home[key])}</td><td>${num(away[key])}</td></tr>`)
-    .join("");
-}
-
 function fold(title, note, body) {
   return `<details class="stat-fold"><summary><span>${title}</span><small>${note}</small></summary><div class="stat-body">${body}</div></details>`;
 }
 
-function compareTable(homeName, awayName, rows) {
-  return `<table class="cmp"><thead><tr><th></th><th>${homeName}</th><th>${awayName}</th></tr></thead><tbody>${rows}</tbody></table>`;
+function linesFrom(home, away, rows) {
+  return rows.map(([label, key]) => ({ label, home: home[key], away: away[key] }));
+}
+
+function wins(record) {
+  return Number(String(record).split("-")[0]) || 0;
+}
+
+function section(match, title, note, lines) {
+  const cards = lines
+    .map((line) =>
+      quoteCards(
+        line.label,
+        match.home,
+        match.away,
+        line.homeText ?? num(line.home),
+        line.awayText ?? num(line.away)
+      )
+    )
+    .join("");
+  return fold(title, note, `${cards}${sectionActions(match, title, lines)}`);
 }
 
 function statsBlock(match) {
   const home = profile(match.home);
   const away = profile(match.away);
-  const bins = ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90"]
-    .map(
-      (label, index) =>
-        `<tr><td>${label}</td><td>${num(home.goalsForBins[index])} / ${num(home.goalsAgainstBins[index])}</td><td>${num(away.goalsForBins[index])} / ${num(away.goalsAgainstBins[index])}</td></tr>`
-    )
-    .join("");
+  const bins = ["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90"].flatMap(
+    (label, index) => [
+      {
+        label: `${label} a favor`,
+        home: home.goalsForBins[index],
+        away: away.goalsForBins[index],
+      },
+      {
+        label: `${label} en contra`,
+        home: home.goalsAgainstBins[index],
+        away: away.goalsAgainstBins[index],
+      },
+    ]
+  );
+  const recordLine = (label, homeRecord, awayRecord) => ({
+    label,
+    home: wins(homeRecord),
+    away: wins(awayRecord),
+    homeText: homeRecord,
+    awayText: awayRecord,
+  });
   const sections = [
-    ["Goles", "Por partido", compareTable(match.home, match.away, `${pairRows(home, away, [
-      ["Anotados", "goalsFor"],
-      ["Recibidos", "goalsAgainst"],
-      ["Anotados, 1.ª parte", "goalsFor1"],
-      ["Recibidos, 1.ª parte", "goalsAgainst1"],
-      ["Anotados, 2.ª parte", "goalsFor2"],
-      ["Recibidos, 2.ª parte", "goalsAgainst2"],
-    ])}<tr><td colspan="3">A favor / en contra cada 10 min</td></tr>${bins}`)],
-    ["Córners", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    section(match, "Goles", "Por partido", [
+      ...linesFrom(home, away, [
+        ["Anotados", "goalsFor"],
+        ["Recibidos", "goalsAgainst"],
+        ["Anotados, 1.ª parte", "goalsFor1"],
+        ["Recibidos, 1.ª parte", "goalsAgainst1"],
+        ["Anotados, 2.ª parte", "goalsFor2"],
+        ["Recibidos, 2.ª parte", "goalsAgainst2"],
+      ]),
+      ...bins,
+    ]),
+    section(match, "Córners", "Por partido", linesFrom(home, away, [
       ["A favor", "cornersFor"],
       ["En contra", "cornersAgainst"],
       ["A favor, 1.ª parte", "cornersFor1"],
@@ -351,8 +359,8 @@ function statsBlock(match) {
       ["En contra, 2.ª parte", "cornersAgainst2"],
       ["A favor, primeros 10 min", "cornersFor10"],
       ["En contra, primeros 10 min", "cornersAgainst10"],
-    ]))],
-    ["Tarjetas", "Recibidas y provocadas", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Tarjetas", "Recibidas y provocadas", linesFrom(home, away, [
       ["Recibidas", "cardsFor"],
       ["Provocadas", "cardsAgainst"],
       ["Recibidas, 1.ª parte", "cardsFor1"],
@@ -363,76 +371,74 @@ function statsBlock(match) {
       ["Provocadas, primeros 10 min", "cardsAgainst10"],
       ["Rojas a favor", "redsFor"],
       ["Rojas en contra", "redsAgainst"],
-    ]))],
-    ["Fueras de juego", "Pitados por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Fueras de juego", "Pitados por partido", linesFrom(home, away, [
       ["Al equipo", "offsidesFor"],
       ["Al rival", "offsidesAgainst"],
-    ]))],
-    ["Remates", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Remates", "Por partido", linesFrom(home, away, [
       ["A favor", "shotsFor"],
       ["En contra", "shotsAgainst"],
       ["A favor, 1.ª parte", "shotsFor1"],
       ["En contra, 1.ª parte", "shotsAgainst1"],
       ["A favor, 2.ª parte", "shotsFor2"],
       ["En contra, 2.ª parte", "shotsAgainst2"],
-    ]))],
-    ["Remates a puerta", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Remates a puerta", "Por partido", linesFrom(home, away, [
       ["A favor", "sotFor"],
       ["En contra", "sotAgainst"],
       ["A favor, 1.ª parte", "sotFor1"],
       ["En contra, 1.ª parte", "sotAgainst1"],
       ["A favor, 2.ª parte", "sotFor2"],
       ["En contra, 2.ª parte", "sotAgainst2"],
-    ]))],
-    ["Saques de puerta", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Saques de puerta", "Por partido", linesFrom(home, away, [
       ["A favor", "goalKicksFor"],
       ["En contra", "goalKicksAgainst"],
       ["A favor, 1.ª parte", "goalKicksFor1"],
       ["En contra, 1.ª parte", "goalKicksAgainst1"],
       ["A favor, 2.ª parte", "goalKicksFor2"],
       ["En contra, 2.ª parte", "goalKicksAgainst2"],
-    ]))],
-    ["Saques de banda", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Saques de banda", "Por partido", linesFrom(home, away, [
       ["A favor", "throwInsFor"],
       ["En contra", "throwInsAgainst"],
       ["A favor, 1.ª parte", "throwInsFor1"],
       ["En contra, 1.ª parte", "throwInsAgainst1"],
       ["A favor, 2.ª parte", "throwInsFor2"],
       ["En contra, 2.ª parte", "throwInsAgainst2"],
-    ]))],
-    ["Entradas", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Entradas", "Por partido", linesFrom(home, away, [
       ["A favor", "tacklesFor"],
       ["En contra", "tacklesAgainst"],
       ["A favor, 1.ª parte", "tacklesFor1"],
       ["En contra, 1.ª parte", "tacklesAgainst1"],
       ["A favor, 2.ª parte", "tacklesFor2"],
       ["En contra, 2.ª parte", "tacklesAgainst2"],
-    ]))],
-    ["Tiros libres", "Faltas sacadas, por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Tiros libres", "Faltas sacadas, por partido", linesFrom(home, away, [
       ["A favor", "freeKicksFor"],
       ["En contra", "freeKicksAgainst"],
       ["A favor, 1.ª parte", "freeKicksFor1"],
       ["En contra, 1.ª parte", "freeKicksAgainst1"],
       ["A favor, 2.ª parte", "freeKicksFor2"],
       ["En contra, 2.ª parte", "freeKicksAgainst2"],
-    ]))],
-    ["Faltas", "Por partido", compareTable(match.home, match.away, pairRows(home, away, [
+    ])),
+    section(match, "Faltas", "Por partido", linesFrom(home, away, [
       ["A favor", "foulsFor"],
       ["En contra", "foulsAgainst"],
       ["A favor, 1.ª parte", "foulsFor1"],
       ["En contra, 1.ª parte", "foulsAgainst1"],
       ["A favor, 2.ª parte", "foulsFor2"],
       ["En contra, 2.ª parte", "foulsAgainst2"],
-    ]))],
-    ["Resultados", "Victorias-empates-derrotas", `<table class="cmp"><thead><tr><th></th><th>${match.home}</th><th>${match.away}</th></tr></thead><tbody>
-      <tr><td>Partido</td><td>${home.results}</td><td>${away.results}</td></tr>
-      <tr><td>Al descanso</td><td>${home.resultsHalf}</td><td>${away.resultsHalf}</td></tr>
-      <tr><td>Primeros 10 min</td><td>${home.results10}</td><td>${away.results10}</td></tr>
-    </tbody></table>`],
+    ])),
+    section(match, "Resultados", "Victorias-empates-derrotas", [
+      recordLine("Partido", home.results, away.results),
+      recordLine("Al descanso", home.resultsHalf, away.resultsHalf),
+      recordLine("Primeros 10 min", home.results10, away.results10),
+    ]),
   ];
-  return `<p class="sub stat-note">Medias de ejemplo por partido. Todavía no salen de una fuente real.</p>${sections
-    .map(([title, note, body]) => fold(title, note, body))
-    .join("")}`;
+  return `<p class="sub stat-note">Medias de ejemplo por partido. Todavía no salen de una fuente real. Las acciones de cada apartado salen de esas medias.</p>${sections.join("")}`;
 }
 
 function render() {
@@ -478,7 +484,7 @@ function render() {
                 <strong>${match.home} vs ${match.away}</strong>
                 <time>${hourLabel(match.kickoff)}</time>
               </button>${
-                expanded ? `<div class="fixture-panel">${oddsBlock(match)}${actionBlock(match)}${statsBlock(match)}</div>` : ""
+                expanded ? `<div class="fixture-panel">${statsBlock(match)}</div>` : ""
               }`;
             })
             .join("")}`
