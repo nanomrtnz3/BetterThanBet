@@ -1,4 +1,5 @@
 import { loadCache, cacheAgeLabel } from "./cache.js";
+import { rateValueActions } from "../tools/probability.mjs";
 
 const $ = (id) => document.getElementById(id);
 
@@ -22,18 +23,6 @@ function extraMarket(match, type) {
     .join("");
 }
 
-function probabilityLine(match) {
-  if (!match.probs) return "";
-  const bits = [
-    `local ${match.probs.home}%`,
-    `empate ${match.probs.draw}%`,
-    `visita ${match.probs.away}%`,
-  ];
-  if (match.probs.over25 != null) bits.push(`más 2.5 ${match.probs.over25}%`);
-  if (match.probs.btts != null) bits.push(`ambos ${match.probs.btts}%`);
-  return `<p class="sub" style="margin-bottom:10px">Modelo: ${bits.join(" · ")}</p>`;
-}
-
 function playerRows(rows, cells) {
   return rows
     .map(
@@ -45,29 +34,6 @@ function playerRows(rows, cells) {
       </tr>`
     )
     .join("");
-}
-
-function actionLines(match) {
-  const rows = match.actions || [];
-  if (!rows.length) return "";
-  const label = { probable: "Más probable", arriesgada: "Más arriesgada" };
-  return `<div class="value-pair">${rows
-    .map(
-      (row) =>
-        `<p><b>${label[row.kind] || "Acción"}.</b> ${row.market} · ${row.hit}% de acierto${row.odd ? ` · cuota ${row.odd}` : ""}</p>`
-    )
-    .join("")}</div>`;
-}
-
-function fmtKickoff(iso) {
-  const d = new Date(iso);
-  return d.toLocaleString("es-ES", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function render(data) {
@@ -134,28 +100,6 @@ function render(data) {
     )
     .join("");
 
-  $("upcomingGrid").innerHTML = data.upcoming
-    .map(
-      (m) => `
-      <article class="card">
-        <div class="fixture-title">
-          <strong>${m.home} vs ${m.away}</strong>
-          <span class="kickoff">${fmtKickoff(m.kickoff)}</span>
-        </div>
-        <div class="sub" style="margin-bottom:10px">${m.league}</div>
-        ${probabilityLine(m)}
-        ${actionLines(m)}
-        ${
-          m.markets?.some((market) => market.outcomes?.length)
-            ? `${market1x2(m)}
-        <div class="odds" style="margin-top:8px">${extraMarket(m, "overUnder")}</div>
-        <div class="odds" style="margin-top:8px">${extraMarket(m, "btts")}</div>`
-            : `<p class="sub">Cuota aún no publicada.</p>`
-        }
-      </article>`
-    )
-    .join("");
-
   $("shotsBody").innerHTML = playerRows(data.shots || [], (p) => `
         <td>${p.shotsPerGame.toFixed(2)}</td>
         <td>${p.sotPerGame.toFixed(2)}</td>
@@ -173,19 +117,31 @@ function render(data) {
     )
     .join("");
 
-  $("alerts").innerHTML = data.alerts.length
-    ? data.alerts
-        .map(
-          (a) => `
-      <div class="alert">
-        <b>${a.match}</b>
-        <span class="bet">Apuesta: ${a.market}</span>
-        <span class="edge">${a.hit}% de posibilidad de acierto</span>
-        <span>${a.note}</span>
-      </div>`
-        )
-        .join("")
-    : `<article class="card empty">No hay partidos a futuro con cuotas para proponer una apuesta.</article>`;
+  $("alerts").innerHTML = liveActionCards(data.live);
+}
+
+function liveActionCards(live) {
+  if (!live.length) {
+    return `<article class="card empty">No hay partidos en directo. Cuando empiece uno, aquí saldrán su acción más probable y la más arriesgada.</article>`;
+  }
+  return live
+    .map((match) => {
+      const rated = rateValueActions(match, null);
+      const lines = [
+        rated.safe && `<p><b>Más probable.</b> ${rated.safe.market} · ${rated.safe.hit}% de acierto · cuota ${rated.safe.odd}</p>`,
+        rated.risky && `<p><b>Más arriesgada.</b> ${rated.risky.market} · ${rated.risky.hit}% de acierto · cuota ${rated.risky.odd}</p>`,
+      ].filter(Boolean);
+      return `<article class="alert">
+        <div class="meta-row"><span class="badge">En directo · ${match.minute}'</span><span>${match.league}</span></div>
+        <b>${match.home} ${match.scoreHome}–${match.scoreAway} ${match.away}</b>
+        ${
+          lines.length
+            ? `<div class="value-pair">${lines.join("")}</div>`
+            : `<span>Este partido no tiene cuotas suficientes para proponer una acción.</span>`
+        }
+      </article>`;
+    })
+    .join("");
 }
 
 let stamp = "";

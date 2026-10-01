@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guía — BetterThanBet</title>
+    <link rel="icon" href="favicon.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css?v=12" />
+  </head>
+  <body>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+
+    <div class="wrap">
+      <header class="nav">
+        <a class="brand" href="index.html">
+          <span class="mark">B</span>
+          <strong>BetterThanBet</strong>
+        </a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú">
+          <span></span><span></span><span></span>
+        </button>
+        <nav class="nav-links" id="site-nav">
+          <a href="index.html#directo">Directo</a>
+          <a href="index.html#jugadores">Jugadores</a>
+          <a href="index.html#winrate">Winrate</a>
+          <a href="index.html#cuotas">Cuotas</a>
+          <a href="index.html#valor">Apuestas</a>
+          <a href="tutorial.html" aria-current="page">Guía</a>
+          <a class="nav-cta" href="partidos.html">Partidos</a>
+        </nav>
+      </header>
+
+      <article class="guide">
+        <p class="kicker">Guía</p>
+        <h1>Cómo usar BetterThanBet.</h1>
+        <p>La página enseña datos y probabilidades. No te dice que apuestes. Si lo haces, que sea con dinero que puedas perder.</p>
+
+        <h2>Moverte</h2>
+        <ol>
+          <li>Arriba, el menú salta a cada bloque de la portada: directo, jugadores, winrate, partidos a futuro y acciones en juego.</li>
+          <li>En el móvil el menú se esconde. Las tres rayas lo abren.</li>
+          <li>El botón verde <strong>Partidos</strong> abre la agenda de los próximos dos meses.</li>
+        </ol>
+
+        <h2>La portada</h2>
+        <ul>
+          <li><strong>Cuotas en directo</strong> son los partidos que se están jugando ahora, con el marcador y las cuotas de resultado y de goles.</li>
+          <li><strong>Jugadores</strong> y <strong>winrate</strong> son rankings. Cada tabla se puede contraer.</li>
+          <li><strong>Partidos a futuro</strong> no lista los encuentros aquí. El botón verde te lleva a la agenda.</li>
+          <li><strong>Acciones de valor en directo</strong> solo existen si hay un partido en juego. Si no hay ninguno, la sección lo dice y se queda vacía.</li>
+        </ul>
+
+        <h2>La página de partidos</h2>
+        <ol>
+          <li>Los días salen cerrados. Ábrelos, o elige una fecha en el selector de al lado del buscador: ese día se abre solo.</li>
+          <li>El buscador filtra por equipo o competición.</li>
+          <li>Pulsa un partido. Arriba están las cuotas. Debajo, cada bloque de estadísticas y las acciones de valor van en su propio desplegable.</li>
+        </ol>
+        <p>Las medias de goles, córners, tarjetas y el resto, en esa pantalla, son cifras de ejemplo. La agenda todavía no está conectada a una fuente real.</p>
+
+        <h2>Qué es una acción de valor</h2>
+        <p>No es un pronóstico ni una recomendación. Es una cuota traducida a probabilidad, después de quitar el margen que se queda la casa.</p>
+        <div class="guide-card">
+          <p><b>Más probable.</b> La opción con el porcentaje más alto, siempre que llegue al menos al 55%.</p>
+          <p><b>Más arriesgada.</b> De otro mercado. Si la probable es el resultado, la arriesgada sale de goles, córners o tarjetas. Es la cuota más alta cuyo acierto queda entre el 25% y el 45%.</p>
+        </div>
+        <p>El cálculo, en corto: cada cuota se pasa a probabilidad (1 dividido por la cuota). Esas cifras suman más de 100% porque la casa cobra margen. Se reparte ese margen para que sumen 100%. Ese porcentaje es el de acierto que ves al lado.</p>
+        <p>En el inicio solo se calculan con las cuotas del partido en directo. En la agenda aparecen al abrir un partido, dentro del desplegable Acciones de valor.</p>
+      </article>
+
+      <footer>
+        <p>© 2026 BetterThanBet. Todos los derechos reservados.</p>
+        <p>Juega con cabeza. Esta página no fomenta el juego: muestra datos y probabilidades para informar, no para animar a apostar. Si apuestas, hazlo solo con dinero que puedas perder.</p>
+      </footer>
+    </div>
+    <script src="js/nav.js?v=2"></script>
+  </body>
+</html>

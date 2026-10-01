@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=11" />
+    <link rel="stylesheet" href="css/styles.css?v=12" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -33,11 +33,13 @@
           <a href="#winrate">Winrate</a>
           <a href="#cuotas">Cuotas</a>
           <a href="#valor">Apuestas</a>
+          <a href="tutorial.html">Guía</a>
           <a class="nav-cta" href="partidos.html">Partidos</a>
         </nav>
       </header>
 
       <section class="hero">
+        <a class="guide-link" href="tutorial.html">Cómo funciona esta página</a>
         <div class="kicker"><span class="pulse"></span> Datos actualizados · <span id="cacheChip">cargando…</span></div>
         <h1>Mejor que apostar: <span>ver el juego.</span></h1>
         <p>Rankings de jugadores, winrate y cuotas en directo y a futuro.</p>
@@ -139,10 +141,17 @@
 
       <section id="cuotas">
         <div class="section-head">
-          <h2>Cuotas a futuro</h2>
-          <p>1X2 y ambos marcan</p>
+          <h2>Partidos a futuro</h2>
+          <p>Agenda a dos meses, por fecha y competición</p>
         </div>
-        <div class="grid-3 upcoming" id="upcomingGrid"></div>
+        <a class="future-card" href="partidos.html">
+          <div>
+            <p class="kicker">Octubre y noviembre</p>
+            <h3>Abre un partido y mira dentro.</h3>
+            <p>Busca un equipo o elige el día. Al pulsarlo ves las cuotas, las estadísticas de los dos equipos y dos acciones de valor.</p>
+          </div>
+          <span class="future-go">Ver partidos</span>
+        </a>
       </section>
 
       <section>
@@ -155,8 +164,8 @@
 
       <section id="valor">
         <div class="section-head">
-          <h2>Apuestas propuestas</h2>
-          <p>Resultado, tiros a puerta y tarjetas, con su probabilidad de acierto</p>
+          <h2>Acciones de valor en directo</h2>
+          <p>Solo de los partidos que se están jugando ahora</p>
         </div>
         <div id="alerts"></div>
       </section>
@@ -167,6 +176,6 @@
       </footer>
     </div>
     <script src="js/nav.js?v=2"></script>
-    <script type="module" src="js/app.js?v=8"></script>
+    <script type="module" src="js/app.js?v=9"></script>
   </body>
 </html>
