@@ -498,7 +498,7 @@ function statsBlock(match) {
       recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
     ]),
   ];
-  return `<p class="sub stat-note">Encima de cada recuadro está la apuesta. El número azul es la cuota, siempre mayor que 1: cuanto más baja, más probable es. Los tramos son de 15 minutos.</p>${sections.join("")}`;
+  return sections.join("");
 }
 
 function render() {
