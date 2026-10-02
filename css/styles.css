@@ -427,6 +427,15 @@ table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: rig
 .guide strong { color: var(--text); }
 .guide-card { border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; background: var(--panel); }
 .guide-card b { color: var(--lime); }
+.guide-video {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #000;
+  display: block;
+}
+.guide-folds { display: grid; gap: 8px; }
+.guide-folds .stat-fold { margin-top: 0; }
 
 @media (max-width: 1100px) {
   .stats { grid-template-columns: repeat(2, 1fr); }

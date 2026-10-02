@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=15" />
+    <link rel="stylesheet" href="css/styles.css?v=16" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -44,6 +44,7 @@
           <a href="#moverte">Moverte</a>
           <a href="#portada">La portada</a>
           <a href="#partidos">La página de partidos</a>
+          <a href="#cuotas">Cómo funcionan las cuotas</a>
           <a href="#acciones">Qué es una acción de valor</a>
         </nav>
       <article class="guide">
@@ -75,6 +76,40 @@
         <p>La cuota es siempre mayor que 1. Cuanto más baja, más probable se considera esa opción. El texto de encima solo dice qué apuesta es.</p>
         <p>Los goles por tramo van de 15 en 15 minutos: desde el minuto 0 al 15, del 16 al 30, del 31 al 45, del 46 al 60, del 61 al 75 y del 76 al 90. La fuente parte el partido así, no cada 10 minutos.</p>
         <p>Esas medias son cifras de ejemplo. La agenda todavía no está conectada a una fuente real.</p>
+
+        <h2 id="cuotas">Cómo funcionan las cuotas</h2>
+        <p>Una cuota es el precio de una opción. Siempre es mayor que 1. Con una cuota de 2.00, un acierto devuelve 2 € por cada 1 € apostado. Cuanto más baja, más probable se considera esa opción.</p>
+        <video class="guide-video" controls playsinline preload="metadata" src="media/cuotas.mp4">
+          Tu navegador no puede reproducir este vídeo.
+        </video>
+        <p>El vídeo enseña cuatro formas de leer un partido. Abre cada una.</p>
+        <div class="guide-folds">
+          <details class="stat-fold">
+            <summary><span>Ambos marcan</span></summary>
+            <div class="stat-body">
+              <p>Cuenta como acierto si los dos equipos meten al menos un gol. Un 1-1 y un 2-2 valen. Un 2-0 no, porque un equipo se queda a cero. Da igual quién gane el partido.</p>
+            </div>
+          </details>
+          <details class="stat-fold">
+            <summary><span>1X</span></summary>
+            <div class="stat-body">
+              <p>Local o empate. Vale si gana el equipo de casa o si el partido termina en tablas. Solo se pierde si gana el visitante. Al cubrir dos resultados, la cuota suele ser más baja que apostar solo a la victoria local.</p>
+            </div>
+          </details>
+          <details class="stat-fold">
+            <summary><span>X2</span></summary>
+            <div class="stat-body">
+              <p>Empate o visitante. Vale si empatan o si gana el equipo de fuera. Solo se pierde si gana el local.</p>
+            </div>
+          </details>
+          <details class="stat-fold">
+            <summary><span>1-2</span></summary>
+            <div class="stat-body">
+              <p>Marcador exacto: un gol del local y dos del visitante. Cualquier otro resultado pierde. Por eso la cuota suele ser más alta que 1X o X2, que aceptan más de un final.</p>
+            </div>
+          </details>
+        </div>
+        <p>En la agenda, el número azul es la cuota de la apuesta de ese apartado, como goles o córners. Se lee igual que estas cuatro: por encima de 1, y más baja cuando esa opción se ve más probable.</p>
 
         <h2 id="acciones">Qué es una acción de valor</h2>
         <p>No es un pronóstico ni una recomendación. Es una cuota traducida a probabilidad, después de quitar el margen que se queda la casa.</p>
