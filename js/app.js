@@ -1,5 +1,6 @@
 import { loadCache, cacheAgeLabel } from "./cache.js";
 import { rateValueActions } from "../tools/probability.mjs";
+import { COMPS, profile, yellowText } from "./demo.mjs";
 
 const $ = (id) => document.getElementById(id);
 
@@ -84,6 +85,7 @@ function render(data) {
         <td>${p.yellowAvg.toFixed(2)}</td>
         <td>${p.redAvg.toFixed(2)}</td>
         <td>${p.yellow}/${p.red}</td>
+        <td>${yellowText(p.yellow)}</td>
       </tr>`
     )
     .join("");
@@ -118,6 +120,31 @@ function render(data) {
     .join("");
 
   $("alerts").innerHTML = liveActionCards(data.live);
+  renderStats();
+  window.prepareTables?.();
+}
+
+function renderStats() {
+  const root = $("estadisticasBody");
+  if (!root || root.dataset.ready) return;
+  root.dataset.ready = "1";
+  root.innerHTML = COMPS.filter((comp) => comp.order <= 5)
+    .map((comp, index) => `<details class="fold"${index === 0 ? " open" : ""}>
+      <summary><span>${comp.name}</span><small>Por partido, cifras de ejemplo</small></summary>
+      <div class="drag-wrap">
+        <p class="drag-hint">Arrastra la tabla hacia el lado. El equipo se queda fijo.</p>
+        <div class="card drag-table">
+          <table>
+            <thead><tr><th>Equipo</th><th>GF</th><th>GC</th><th>Córners</th><th>Tarjetas</th><th>Remates</th><th>A puerta</th></tr></thead>
+            <tbody>${comp.teams.map((team) => {
+              const row = profile(team);
+              return `<tr><td>${team}</td><td>${row.goalsFor.toFixed(1)}</td><td>${row.goalsAgainst.toFixed(1)}</td><td>${row.cornersFor.toFixed(1)}</td><td>${row.cardsFor.toFixed(1)}</td><td>${row.shotsFor.toFixed(1)}</td><td>${row.sotFor.toFixed(1)}</td></tr>`;
+            }).join("")}</tbody>
+          </table>
+        </div>
+      </div>
+    </details>`)
+    .join("");
 }
 
 function liveActionCards(live) {

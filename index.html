@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=15" />
+    <link rel="stylesheet" href="css/styles.css?v=17" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -31,8 +31,11 @@
           <a href="#directo">Directo</a>
           <a href="#jugadores">Jugadores</a>
           <a href="#winrate">Winrate</a>
+          <a href="#estadisticas">Estadísticas</a>
           <a href="#cuotas">Cuotas</a>
           <a href="#valor">Apuestas</a>
+          <a href="combinadas.html">Combinadas</a>
+          <a href="alineaciones.html">Alineaciones</a>
           <a href="tutorial.html">Guía</a>
           <a class="nav-cta" href="partidos.html">Partidos</a>
         </nav>
@@ -70,7 +73,9 @@
             <span>Máximos goleadores</span>
             <small>Goles, asistencias y goles/90</small>
           </summary>
-          <div class="card">
+          <div class="drag-wrap">
+          <p class="drag-hint">Arrastra la tabla hacia el lado. El jugador se queda fijo.</p>
+          <div class="card drag-table stick-player">
             <table>
               <thead>
                 <tr>
@@ -85,14 +90,17 @@
               <tbody id="scorersBody"></tbody>
             </table>
           </div>
+          </div>
         </details>
 
         <details class="fold" open>
           <summary>
             <span>Ranking de tarjetas</span>
-            <small>Promedio por partido</small>
+            <small>Promedio y ciclo de 5 amarillas</small>
           </summary>
-          <div class="card">
+          <div class="drag-wrap">
+          <p class="drag-hint">Arrastra la tabla hacia el lado. El jugador se queda fijo.</p>
+          <div class="card drag-table stick-player">
             <table>
               <thead>
                 <tr>
@@ -101,10 +109,12 @@
                   <th>Amar./PJ</th>
                   <th>Roja/PJ</th>
                   <th>A/R</th>
+                  <th>Acum.</th>
                 </tr>
               </thead>
               <tbody id="cardsBody"></tbody>
             </table>
+          </div>
           </div>
         </details>
 
@@ -113,7 +123,9 @@
             <span>Tiros por partido</span>
             <small>Total de disparos esta temporada</small>
           </summary>
-          <div class="card">
+          <div class="drag-wrap">
+          <p class="drag-hint">Arrastra la tabla hacia el lado. El jugador se queda fijo.</p>
+          <div class="card drag-table stick-player">
             <table>
               <thead>
                 <tr>
@@ -128,7 +140,16 @@
               <tbody id="shotsBody"></tbody>
             </table>
           </div>
+          </div>
         </details>
+      </section>
+
+      <section id="estadisticas">
+        <div class="section-head">
+          <h2>Estadísticas</h2>
+          <p>Medias de ejemplo por equipo</p>
+        </div>
+        <div id="estadisticasBody"></div>
       </section>
 
       <section id="winrate">
@@ -175,7 +196,7 @@
         <p>Juega con cabeza. Esta página no fomenta el juego: muestra datos y probabilidades para informar, no para animar a apostar. Si apuestas, hazlo solo con dinero que puedas perder.</p>
       </footer>
     </div>
-    <script src="js/nav.js?v=2"></script>
-    <script type="module" src="js/app.js?v=9"></script>
+    <script src="js/nav.js?v=3"></script>
+    <script type="module" src="js/app.js?v=10"></script>
   </body>
 </html>

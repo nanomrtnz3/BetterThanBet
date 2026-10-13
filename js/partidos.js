@@ -1,87 +1,21 @@
 import { devig } from "../tools/probability.mjs";
-
-const COMPS = [
-  { name: "Premier League", order: 1, teams: ["Arsenal", "Liverpool", "Manchester City", "Chelsea", "Tottenham", "Newcastle", "Aston Villa", "Brighton"] },
-  { name: "LaLiga", order: 2, teams: ["Real Madrid", "Barcelona", "Atlético de Madrid", "Athletic Club", "Real Sociedad", "Villarreal", "Betis", "Sevilla"] },
-  { name: "Serie A", order: 3, teams: ["Inter", "Milan", "Juventus", "Napoli", "Roma", "Lazio", "Atalanta", "Fiorentina"] },
-  { name: "Bundesliga", order: 4, teams: ["Bayern", "Borussia Dortmund", "Leipzig", "Leverkusen", "Stuttgart", "Frankfurt", "Wolfsburg", "Freiburg"] },
-  { name: "Ligue 1", order: 5, teams: ["PSG", "Marsella", "Mónaco", "Lille", "Lyon", "Lens", "Rennes", "Niza"] },
-  { name: "Champions League", order: 6, teams: ["Real Madrid", "Manchester City", "Bayern", "PSG", "Inter", "Arsenal", "Barcelona", "Liverpool"] },
-  { name: "Europa League", order: 7, teams: ["Roma", "Athletic Club", "Lyon", "Frankfurt", "Porto", "Ajax", "Rangers", "Betis"] },
-  { name: "Conference League", order: 8, teams: ["Fiorentina", "Chelsea", "Betis", "Gent", "Legia", "Molde", "Basilea", "Hearts"] },
-  { name: "Nations League", order: 9, teams: ["España", "Francia", "Inglaterra", "Portugal", "Alemania", "Italia", "Países Bajos", "Croacia"] },
-  { name: "Clasificación Mundial", order: 10, teams: ["España", "Dinamarca", "Suiza", "Escocia", "Polonia", "Suecia", "Gales", "Irlanda"] },
-  { name: "Amistosos", order: 11, teams: ["Brasil", "Argentina", "México", "Japón", "Estados Unidos", "Marruecos", "Senegal", "Corea del Sur"] },
-];
-
-const DAYS = {
-  liga: ["2026-10-03", "2026-10-04", "2026-10-17", "2026-10-18", "2026-10-24", "2026-10-25", "2026-10-31", "2026-11-01", "2026-11-07", "2026-11-08", "2026-11-21", "2026-11-22", "2026-11-28", "2026-11-29"],
-  europa: ["2026-10-06", "2026-10-07", "2026-10-20", "2026-10-21", "2026-11-03", "2026-11-04", "2026-11-24", "2026-11-25"],
-  selecciones: ["2026-10-10", "2026-10-13", "2026-11-14", "2026-11-17"],
-};
-
-function mulberry32(seed) {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function decimal(probability, rand) {
-  const margin = 1.05 + rand() * 0.03;
-  return Math.round((margin / Math.max(0.06, probability)) * 100) / 100;
-}
-
-// Conserva el sorteo de la agenda al dejar de generar las cuotas antiguas.
-function burnOldMarkets(rand, withOdds) {
-  if (!withOdds) return;
-  for (let i = 0; i < 20; i += 1) rand();
-}
-
-function kickoff(day, hour, minute) {
-  return new Date(`${day}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00+02:00`).toISOString();
-}
-
-function buildFixtures() {
-  const rand = mulberry32(202610);
-  const fixtures = [];
-  let n = 0;
-  const add = (day, comp, hours) => {
-    const shuffled = [...comp.teams].sort(() => rand() - 0.5);
-    hours.forEach((hour, index) => {
-      const minute = rand() > 0.5 ? 0 : 30;
-      burnOldMarkets(rand, comp.name !== "Amistosos" || day < "2026-11-14");
-      fixtures.push({
-        id: `demo-${n++}`,
-        league: comp.name,
-        order: comp.order,
-        home: shuffled[index * 2],
-        away: shuffled[index * 2 + 1],
-        kickoff: kickoff(day, hour, minute),
-      });
-    });
-  };
-
-  const ligas = COMPS.filter((comp) => comp.order <= 5);
-  DAYS.liga.forEach((day, index) => {
-    const slice = index % 2 === 0 ? ligas.slice(0, 3) : ligas.slice(3);
-    slice.forEach((comp, i) => add(day, comp, [14 + i, 18 + i]));
-  });
-  const europas = COMPS.filter((comp) => comp.order >= 6 && comp.order <= 8);
-  DAYS.europa.forEach((day, index) => add(day, europas[index % europas.length], [18, 21]));
-  DAYS.selecciones.forEach((day, index) => {
-    add(day, COMPS[8 + (index % 2)], [20]);
-    if (index % 2 === 1) add(day, COMPS[10], [18]);
-  });
-
-  return fixtures.sort((a, b) => a.kickoff.localeCompare(b.kickoff) || a.order - b.order || a.home.localeCompare(b.home, "es"));
-}
-
-const FIXTURES = buildFixtures();
+import { addSlip } from "./slip.mjs";
+import {
+  BOOKS,
+  FIXTURES,
+  bookQuote,
+  dayKey,
+  dayLabel,
+  decimal,
+  hashName,
+  hourLabel,
+  mulberry32,
+  playerProps,
+  profile,
+  searchBlob,
+  squad,
+  yellowText,
+} from "./demo.mjs";
 
 const board = document.querySelector("#board");
 const query = document.querySelector("#q");
@@ -89,11 +23,6 @@ const dateSelect = document.querySelector("#day");
 const count = document.querySelector("#count");
 const openId = { current: null };
 const openDay = { current: null };
-
-function dayKey(iso) {
-  const date = new Date(iso);
-  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-}
 
 const seenDays = new Set();
 for (const match of FIXTURES) {
@@ -104,14 +33,6 @@ for (const match of FIXTURES) {
   option.value = key;
   option.textContent = dayLabel(match.kickoff);
   dateSelect.append(option);
-}
-
-function dayLabel(iso) {
-  return new Date(iso).toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
-}
-
-function hourLabel(iso) {
-  return new Date(iso).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
 }
 
 function betWhat(section, label) {
@@ -190,8 +111,9 @@ function priceLines(match, title, lines) {
   });
 }
 
-function betCard(side) {
-  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}.</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div></div>`;
+function betCard(side, legId) {
+  const add = legId ? `<button type="button" class="add-slip" data-leg="${legId}">Añadir</button>` : "";
+  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}.</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div>${add}</div>`;
 }
 
 function actionsHtml(rows) {
@@ -211,142 +133,6 @@ function actionsHtml(rows) {
   return `<p class="market-label">Acciones de valor</p>${body}`;
 }
 
-const profiles = new Map();
-
-function profile(name) {
-  const cached = profiles.get(name);
-  if (cached) return cached;
-  const rand = mulberry32(hashName(name) || 1);
-  const rate = (base, spread, digits = 1) => {
-    const factor = 10 ** digits;
-    return Math.round((base + rand() * spread) * factor) / factor;
-  };
-  const split = (total, parts) => {
-    const weights = Array.from({ length: parts }, () => 0.35 + rand());
-    const sum = weights.reduce((totalWeight, weight) => totalWeight + weight, 0);
-    return weights.map((weight) => Math.round((total * weight / sum) * 100) / 100);
-  };
-  const record = (played) => {
-    const wins = Math.round(played * (0.28 + rand() * 0.35));
-    const draws = Math.round((played - wins) * (0.2 + rand() * 0.35));
-    const losses = Math.max(0, played - wins - draws);
-    return { wins, draws, losses, text: `${wins} V · ${draws} E · ${losses} D` };
-  };
-  const played = 10 + Math.floor(rand() * 8);
-  const goalsFor = rate(0.9, 1.5);
-  const goalsAgainst = rate(0.7, 1.3);
-  const row = {
-    goalsFor,
-    goalsAgainst,
-    goalsFor1: rate(0.35, 0.7),
-    goalsAgainst1: rate(0.3, 0.6),
-    goalsFor2: rate(0.4, 0.8),
-    goalsAgainst2: rate(0.35, 0.7),
-    goalsForBins: split(goalsFor, 6),
-    goalsAgainstBins: split(goalsAgainst, 6),
-    cornersFor: rate(3.4, 3.2),
-    cornersAgainst: rate(3.2, 3),
-    cornersFor1: rate(1.4, 1.6),
-    cornersAgainst1: rate(1.3, 1.5),
-    cornersFor2: rate(1.6, 1.8),
-    cornersAgainst2: rate(1.5, 1.6),
-    cornersFor10: rate(0.4, 0.8),
-    cornersAgainst10: rate(0.3, 0.8),
-    cardsFor: rate(1.4, 1.4),
-    cardsAgainst: rate(1.3, 1.4),
-    cardsFor1: rate(0.5, 0.7),
-    cardsAgainst1: rate(0.4, 0.7),
-    cardsFor2: rate(0.7, 0.9),
-    cardsAgainst2: rate(0.6, 0.9),
-    cardsFor10: rate(0.1, 0.25, 2),
-    cardsAgainst10: rate(0.08, 0.22, 2),
-    redsFor: rate(0.04, 0.12, 2),
-    redsAgainst: rate(0.03, 0.1, 2),
-    offsidesFor: rate(1.2, 1.6),
-    offsidesAgainst: rate(1.1, 1.5),
-    shotsFor: rate(10, 8),
-    shotsAgainst: rate(9, 7),
-    shotsFor1: rate(4.2, 3.5),
-    shotsAgainst1: rate(4, 3.2),
-    shotsFor2: rate(5, 4),
-    shotsAgainst2: rate(4.6, 3.6),
-    sotFor: rate(3.4, 3),
-    sotAgainst: rate(3.1, 2.8),
-    sotFor1: rate(1.4, 1.4),
-    sotAgainst1: rate(1.3, 1.3),
-    sotFor2: rate(1.6, 1.6),
-    sotAgainst2: rate(1.5, 1.5),
-    goalKicksFor: rate(5, 4),
-    goalKicksAgainst: rate(4.8, 3.8),
-    goalKicksFor1: rate(2.2, 1.8),
-    goalKicksAgainst1: rate(2.1, 1.7),
-    goalKicksFor2: rate(2.4, 2),
-    goalKicksAgainst2: rate(2.3, 1.9),
-    throwInsFor: rate(16, 8),
-    throwInsAgainst: rate(15, 8),
-    throwInsFor1: rate(7, 4),
-    throwInsAgainst1: rate(6.5, 4),
-    throwInsFor2: rate(8, 4.5),
-    throwInsAgainst2: rate(7.5, 4.2),
-    tacklesFor: rate(13, 6),
-    tacklesAgainst: rate(12, 6),
-    tacklesFor1: rate(6, 3),
-    tacklesAgainst1: rate(5.5, 2.8),
-    tacklesFor2: rate(6.5, 3.2),
-    tacklesAgainst2: rate(6, 3),
-    freeKicksFor: rate(11, 5),
-    freeKicksAgainst: rate(10, 5),
-    freeKicksFor1: rate(5, 2.4),
-    freeKicksAgainst1: rate(4.6, 2.2),
-    freeKicksFor2: rate(5.4, 2.6),
-    freeKicksAgainst2: rate(5, 2.4),
-    foulsFor: rate(10, 5),
-    foulsAgainst: rate(11, 5),
-    foulsFor1: rate(4.4, 2.2),
-    foulsAgainst1: rate(4.8, 2.4),
-    foulsFor2: rate(5, 2.6),
-    foulsAgainst2: rate(5.4, 2.6),
-    results: record(played),
-    resultsHalf: record(played),
-    results10: record(played),
-  };
-  const tie = (total, first, second) => {
-    const part = Math.min(row[total], Math.round(row[total] * (0.4 + rand() * 0.15) * 10) / 10);
-    row[first] = part;
-    row[second] = Math.max(0, Math.round((row[total] - part) * 10) / 10);
-  };
-  [
-    ["goalsFor", "goalsFor1", "goalsFor2"],
-    ["goalsAgainst", "goalsAgainst1", "goalsAgainst2"],
-    ["cornersFor", "cornersFor1", "cornersFor2"],
-    ["cornersAgainst", "cornersAgainst1", "cornersAgainst2"],
-    ["cardsFor", "cardsFor1", "cardsFor2"],
-    ["cardsAgainst", "cardsAgainst1", "cardsAgainst2"],
-    ["shotsFor", "shotsFor1", "shotsFor2"],
-    ["shotsAgainst", "shotsAgainst1", "shotsAgainst2"],
-    ["sotFor", "sotFor1", "sotFor2"],
-    ["sotAgainst", "sotAgainst1", "sotAgainst2"],
-    ["goalKicksFor", "goalKicksFor1", "goalKicksFor2"],
-    ["goalKicksAgainst", "goalKicksAgainst1", "goalKicksAgainst2"],
-    ["throwInsFor", "throwInsFor1", "throwInsFor2"],
-    ["throwInsAgainst", "throwInsAgainst1", "throwInsAgainst2"],
-    ["tacklesFor", "tacklesFor1", "tacklesFor2"],
-    ["tacklesAgainst", "tacklesAgainst1", "tacklesAgainst2"],
-    ["freeKicksFor", "freeKicksFor1", "freeKicksFor2"],
-    ["freeKicksAgainst", "freeKicksAgainst1", "freeKicksAgainst2"],
-    ["foulsFor", "foulsFor1", "foulsFor2"],
-    ["foulsAgainst", "foulsAgainst1", "foulsAgainst2"],
-  ].forEach(([total, first, second]) => tie(total, first, second));
-  profiles.set(name, row);
-  return row;
-}
-
-function hashName(name) {
-  let hash = 2166136261;
-  for (const char of name) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-  return hash >>> 0;
-}
-
 function num(value) {
   return Number(value).toFixed(Math.abs(value) < 0.3 ? 2 : 1);
 }
@@ -362,9 +148,55 @@ function linesFrom(home, away, rows) {
 function section(match, title, note, lines) {
   const rows = priceLines(match, title, lines);
   const cards = rows
-    .map((row) => `<p class="market-label">${row.label}</p><div class="odds bets">${betCard(row.home)}${betCard(row.away)}</div>`)
+    .map((row) => {
+      const goal = title === "Goles" && row.label === "Anotados";
+      return `<p class="market-label">${row.label}</p><div class="odds bets">${betCard(row.home, goal ? `g:${match.id}:h` : "")}${betCard(row.away, goal ? `g:${match.id}:a` : "")}</div>`;
+    })
     .join("");
   return fold(title, note, `${cards}${actionsHtml(rows)}`);
+}
+
+function personRow(player) {
+  const note = player.note ? ` · ${player.note}` : "";
+  return `<li><b>${player.name}</b> <span>${player.pos}</span><small>${yellowText(player.yellows)}${note}</small></li>`;
+}
+
+function lineupSide(team) {
+  const group = squad(team);
+  const absent = (list, empty) => (list.length ? `<ul class="xi-list">${list.map(personRow).join("")}</ul>` : `<p class="sub">${empty}</p>`);
+  return `<div><h3>${team}</h3><p class="market-label">Once probable</p><ul class="xi-list">${group.xi.map(personRow).join("")}</ul><p class="market-label">Lesionados</p>${absent(group.injured, "Ninguno")}<p class="market-label">Sancionados</p>${absent(group.suspended, "Ninguno")}</div>`;
+}
+
+function extraFolds(match) {
+  const home = profile(match.home);
+  const away = profile(match.away);
+  const statsRows = [
+    ["Goles a favor", home.goalsFor, away.goalsFor],
+    ["Goles en contra", home.goalsAgainst, away.goalsAgainst],
+    ["Córners a favor", home.cornersFor, away.cornersFor],
+    ["Tarjetas recibidas", home.cardsFor, away.cardsFor],
+    ["Remates", home.shotsFor, away.shotsFor],
+    ["Remates a puerta", home.sotFor, away.sotFor],
+    ["Faltas", home.foulsFor, away.foulsFor],
+  ];
+  const stats = fold(
+    "Estadísticas",
+    "Comparación",
+    `<p class="sub">Medias de ejemplo por partido.</p><table class="cmp"><thead><tr><th>Dato</th><th>${match.home}</th><th>${match.away}</th></tr></thead><tbody>${statsRows
+      .map(([label, left, right]) => `<tr><td>${label}</td><td>${num(left)}</td><td>${num(right)}</td></tr>`)
+      .join("")}</tbody></table>`
+  );
+  const lineup = fold("Alineación probable", "Lesionados y sancionados", `<div class="xi-grid">${lineupSide(match.home)}${lineupSide(match.away)}</div><p class="sub">El ciclo de ejemplo es de 5 amarillas. Estas plantillas no son las reales.</p>`);
+  const props = playerProps(match)
+    .map((prop) => `<div class="bet prop"><p><b>${prop.player.name}</b> ${prop.market.label}. <span class="sub">${prop.player.team} · ${yellowText(prop.player.yellows)}</span></p><div class="odd"><small>cuota</small><b>${prop.odd.toFixed(2)}</b><small class="odd-kind">${prop.hit}%</small></div><button type="button" class="add-slip" data-leg="${prop.id}">Añadir</button></div>`)
+    .join("");
+  const players = fold("Cuotas de jugadores", "Gol, asistencia o tarjeta", `<div class="prop-grid">${props}</div>`);
+  const books = BOOKS.map((book) => {
+    const quote = bookQuote(match, book);
+    const card = (side, key) => `<div class="bet"><p><b>${side.team}</b> marca más goles. Cuota de ejemplo de ${book.name}.</p><div class="odd"><small>${book.name}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">${side.hit}%</small></div><button type="button" class="add-slip" data-leg="b:${match.id}:${book.id}:${key}">Añadir</button></div>`;
+    return fold(book.name, "Cuotas de ejemplo", `<div class="odds bets">${card(quote.home, "h")}${card(quote.away, "a")}</div>`);
+  }).join("");
+  return `${stats}${lineup}${players}${fold("Casas de apuestas", "Cuatro casas", books)}`;
 }
 
 function statsBlock(match) {
@@ -498,14 +330,14 @@ function statsBlock(match) {
       recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
     ]),
   ];
-  return sections.join("");
+  return `${extraFolds(match)}${sections.join("")}`;
 }
 
 function render() {
   const text = query.value.trim().toLocaleLowerCase("es");
   const picked = dateSelect.value;
   const rows = FIXTURES.filter((match) => {
-    const blob = `${match.home} ${match.away} ${match.league}`.toLocaleLowerCase("es");
+    const blob = searchBlob(match).toLocaleLowerCase("es");
     const sameDay = !picked || dayKey(match.kickoff) === picked;
     return sameDay && (!text || blob.includes(text));
   });
@@ -533,7 +365,7 @@ function render() {
     .map((bucket) => {
       const total = bucket.comps.reduce((sum, comp) => sum + comp.matches.length, 0);
       const holdsOpenMatch = bucket.comps.some((comp) => comp.matches.some((match) => match.id === openId.current));
-      const open = (picked && bucket.key === picked) || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
+      const open = text || (picked && bucket.key === picked) || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
       const noun = total === 1 ? "partido" : "partidos";
       return `<details class="day fold" data-day="${bucket.key}"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps
         .map(
@@ -554,7 +386,26 @@ function render() {
     .join("");
 }
 
+function toast(message) {
+  let el = document.querySelector(".toast");
+  if (!el) {
+    el = document.createElement("p");
+    el.className = "toast";
+    document.body.append(el);
+  }
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
 board.addEventListener("click", (event) => {
+  const add = event.target.closest(".add-slip");
+  if (add) {
+    addSlip(add.dataset.leg);
+    toast("Añadida a la combinada.");
+    return;
+  }
   const button = event.target.closest(".fixture");
   if (!button) return;
   openDay.current = button.closest("details.day")?.dataset.day || openDay.current;

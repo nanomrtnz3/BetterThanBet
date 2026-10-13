@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=15" />
+    <link rel="stylesheet" href="css/styles.css?v=17" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -31,8 +31,11 @@
           <a href="index.html#directo">Directo</a>
           <a href="index.html#jugadores">Jugadores</a>
           <a href="index.html#winrate">Winrate</a>
+          <a href="index.html#estadisticas">Estadísticas</a>
           <a href="index.html#cuotas">Cuotas</a>
           <a href="index.html#valor">Apuestas</a>
+          <a href="combinadas.html">Combinadas</a>
+          <a href="alineaciones.html">Alineaciones</a>
           <a href="tutorial.html">Guía</a>
           <a class="nav-cta" href="partidos.html" aria-current="page">Partidos</a>
         </nav>
@@ -41,14 +44,15 @@
       <section class="board-head">
         <p class="kicker">Datos de ejemplo · octubre y noviembre de 2026</p>
         <h1>Partidos a dos meses.</h1>
-        <p class="sub">Cinco grandes ligas, copas europeas y selecciones. Pulsa un partido: cada apartado trae las cifras de los dos equipos y sus dos acciones.</p>
+        <p class="sub">Cinco grandes ligas, copas europeas y selecciones. Puedes buscar por equipo o por jugador: la fecha de ese partido se abre sola. Dentro están las estadísticas, la alineación, las cuotas de jugadores y las casas.</p>
         <div class="board-tools">
-          <input id="q" class="board-search" type="search" placeholder="Busca un equipo o una competición" autocomplete="off" />
+          <input id="q" class="board-search" type="search" placeholder="Busca un equipo, un jugador o una competición" autocomplete="off" />
           <select id="day" class="board-search board-day" aria-label="Fecha">
             <option value="">Todas las fechas</option>
           </select>
         </div>
         <p id="count" class="sub"></p>
+        <p class="sub"><a href="combinadas.html">Crear una combinada</a></p>
       </section>
 
       <div id="board"></div>
@@ -58,7 +62,7 @@
         <p>Juega con cabeza. Esta página no fomenta el juego: muestra datos y probabilidades para informar, no para animar a apostar. Si apuestas, hazlo solo con dinero que puedas perder.</p>
       </footer>
     </div>
-    <script src="js/nav.js?v=2"></script>
-    <script type="module" src="js/partidos.js?v=13"></script>
+    <script src="js/nav.js?v=3"></script>
+    <script type="module" src="js/partidos.js?v=14"></script>
   </body>
 </html>
