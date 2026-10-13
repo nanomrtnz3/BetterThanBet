@@ -325,6 +325,12 @@ footer p:first-child { flex: 0 0 auto; }
 footer p:last-child { flex: 1 1 280px; max-width: 52ch; margin-left: auto; text-align: right; }
 
 .board-head { padding: 36px 8px 8px; display: grid; gap: 14px; }
+.lineup-hint {
+  text-decoration: underline;
+  text-decoration-color: #ffe14a;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 5px;
+}
 .board-head h1 { font-family: var(--display); font-size: clamp(2rem, 5vw, 3.2rem); letter-spacing: -0.04em; }
 .board-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .board-search {
