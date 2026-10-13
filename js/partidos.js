@@ -1,5 +1,6 @@
 import { devig } from "../tools/probability.mjs";
 import { addSlip } from "./slip.mjs";
+import { bindLineups, teamPitch } from "./lineup.mjs";
 import {
   BOOKS,
   FIXTURES,
@@ -13,7 +14,6 @@ import {
   playerProps,
   profile,
   searchBlob,
-  squad,
   yellowText,
 } from "./demo.mjs";
 
@@ -156,17 +156,6 @@ function section(match, title, note, lines) {
   return fold(title, note, `${cards}${actionsHtml(rows)}`);
 }
 
-function personRow(player) {
-  const note = player.note ? ` · ${player.note}` : "";
-  return `<li><b>${player.name}</b> <span>${player.pos}</span><small>${yellowText(player.yellows)}${note}</small></li>`;
-}
-
-function lineupSide(team) {
-  const group = squad(team);
-  const absent = (list, empty) => (list.length ? `<ul class="xi-list">${list.map(personRow).join("")}</ul>` : `<p class="sub">${empty}</p>`);
-  return `<div><h3>${team}</h3><p class="market-label">Once probable</p><ul class="xi-list">${group.xi.map(personRow).join("")}</ul><p class="market-label">Lesionados</p>${absent(group.injured, "Ninguno")}<p class="market-label">Sancionados</p>${absent(group.suspended, "Ninguno")}</div>`;
-}
-
 function extraFolds(match) {
   const home = profile(match.home);
   const away = profile(match.away);
@@ -186,7 +175,7 @@ function extraFolds(match) {
       .map(([label, left, right]) => `<tr><td>${label}</td><td>${num(left)}</td><td>${num(right)}</td></tr>`)
       .join("")}</tbody></table>`
   );
-  const lineup = fold("Alineación probable", "Lesionados y sancionados", `<div class="xi-grid">${lineupSide(match.home)}${lineupSide(match.away)}</div><p class="sub">El ciclo de ejemplo es de 5 amarillas. Estas plantillas no son las reales.</p>`);
+  const lineup = fold("Alineación probable", "Once, banquillo y bajas", `<div class="pitch-pair">${teamPitch(match.home)}${teamPitch(match.away)}</div><p class="sub">Pulsa un jugador para ver sus amarillas. El ciclo de ejemplo es de 5. Estas plantillas no son las reales.</p>`);
   const props = playerProps(match)
     .map((prop) => `<div class="bet prop"><p><b>${prop.player.name}</b> ${prop.market.label}. <span class="sub">${prop.player.team} · ${yellowText(prop.player.yellows)}</span></p><div class="odd"><small>cuota</small><b>${prop.odd.toFixed(2)}</b><small class="odd-kind">${prop.hit}%</small></div><button type="button" class="add-slip" data-leg="${prop.id}">Añadir</button></div>`)
     .join("");
@@ -427,4 +416,5 @@ dateSelect.addEventListener("change", () => {
   if (dateSelect.value) board.querySelector("details[open]")?.scrollIntoView({ block: "start" });
 });
 
+bindLineups();
 render();

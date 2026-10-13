@@ -291,6 +291,7 @@ export function squad(team) {
   const row = {
     team,
     xi,
+    bench: players.filter((player) => player.status === "ok" && !xi.includes(player)),
     injured: players.filter((player) => player.status === "lesionado"),
     suspended: players.filter((player) => player.status === "sancionado"),
     all: players,

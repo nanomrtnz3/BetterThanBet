@@ -439,6 +439,127 @@ table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: rig
 }
 .guide-folds { display: grid; gap: 8px; }
 .guide-folds .stat-fold { margin-top: 0; }
+.pitch-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.side-pitch h3 { font-size: 1rem; margin: 0 0 8px; }
+.pitch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 460px;
+  padding: 78px 8px 18px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(to bottom, transparent 49.5%, rgba(255, 255, 255, 0.75) 49.5% 50.5%, transparent 50.5%),
+    radial-gradient(circle at 50% 50%, transparent 28px, rgba(255, 255, 255, 0.75) 28px 30px, transparent 30px),
+    repeating-linear-gradient(to bottom, #1f7a38 0 34px, #176830 34px 68px);
+}
+.pitch::before, .pitch::after {
+  content: "";
+  position: absolute;
+  left: 20%;
+  width: 60%;
+  height: 15%;
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+.pitch::before { top: 0; border-top: 0; }
+.pitch::after { bottom: 0; border-bottom: 0; }
+.pitch-line { display: flex; justify-content: space-evenly; position: relative; z-index: 1; }
+.pitch-player {
+  position: relative;
+  width: 78px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 0;
+}
+.pitch-player b {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f4f6fb;
+  color: #081000;
+  font-size: 0.78rem;
+}
+.pitch-player > span {
+  font-size: 0.68rem;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
+}
+.bubble {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #081000;
+  color: var(--lime);
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-style: normal;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  z-index: 4;
+}
+.bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: #081000;
+}
+.pitch-player.is-open { z-index: 5; }
+.pitch-player.is-open .bubble { display: block; }
+.xi-list .pitch-player {
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  padding: 4px 0;
+}
+.xi-list .pitch-player > span { font-size: 0.92rem; text-shadow: none; color: var(--text); }
+.xi-list .pitch-player b { display: none; }
+.match-fold {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin: 8px 0 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.match-fold > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.match-fold > summary::-webkit-details-marker { display: none; }
+.match-fold > summary span { font-weight: 700; }
+.match-fold > summary small { color: var(--muted); margin-left: auto; }
+.match-fold > summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--lime);
+  border-bottom: 2px solid var(--lime);
+  transform: rotate(45deg) translateY(-2px);
+  flex: none;
+}
+.match-fold[open] > summary::after { transform: rotate(-135deg) translateY(-1px); }
+.pitch-pair { padding: 0 14px 14px; }
 .xi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .xi-grid h3 { font-size: 1rem; margin-bottom: 6px; }
 .xi-list { list-style: none; display: grid; gap: 6px; }
@@ -548,7 +669,7 @@ table.cmp th:not(:first-child), table.cmp td:not(:first-child) { text-align: rig
   .nav.nav-open .nav-links { display: flex; }
   .nav-links a { padding: 10px 12px; font-size: 0.95rem; }
   .nav-links a.nav-cta { text-align: center; }
-  .xi-grid, .prop-grid, .slip-totals { grid-template-columns: 1fr; }
+  .xi-grid, .pitch-pair, .prop-grid, .slip-totals { grid-template-columns: 1fr; }
   .drag-hint { display: block; }
   .drag-wrap.is-scrolled .drag-hint { display: none; }
 }
