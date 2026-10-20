@@ -1,10 +1,18 @@
-import { FIXTURES, playerProps, resolveLeg, searchBlob, dayLabel, hourLabel } from "./demo.mjs";
+import { FIXTURES, resolveLeg, searchBlob, dayKey, dayLabel, hourLabel } from "./demo.mjs";
+import { quotePanel, resolveQuote } from "./quotes.mjs";
 import { addSlip, readSlip, removeSlip, writeSlip } from "./slip.mjs";
 
 const slipEl = document.querySelector("#slip");
-const picks = document.querySelector("#picks");
+const board = document.querySelector("#board");
 const query = document.querySelector("#q");
+const count = document.querySelector("#count");
 const notice = document.querySelector("#notice");
+const openId = { current: null };
+const openDay = { current: null };
+
+function legOf(id) {
+  return resolveQuote(id) || resolveLeg(id);
+}
 
 function idsFromHash() {
   const raw = decodeURIComponent(location.hash.slice(1));
@@ -22,7 +30,7 @@ function syncHash() {
 }
 
 function legs() {
-  return ids.map((id) => resolveLeg(id)).filter(Boolean);
+  return ids.map((id) => legOf(id)).filter(Boolean);
 }
 
 function combined(rows) {
@@ -49,12 +57,12 @@ function toast(message) {
 }
 
 function renderSlip() {
-  ids = ids.filter((id) => resolveLeg(id));
+  ids = ids.filter((id) => legOf(id));
   writeSlip(ids);
   syncHash();
   const rows = legs();
   if (!rows.length) {
-    slipEl.innerHTML = `<p class="sub">Todavía no hay patas. Abre un partido de abajo y pulsa Añadir.</p>`;
+    slipEl.innerHTML = `<p class="sub">Todavía no has añadido ninguna cuota. Abre un partido y pulsa la que quieras.</p>`;
     return;
   }
   const { odd, hit } = combined(rows);
@@ -66,7 +74,7 @@ function renderSlip() {
     <ul class="slip-legs">
       ${rows.map((leg) => `<li><div><strong>${leg.title}</strong><span>${leg.detail} · cuota ${leg.odd.toFixed(2)} · ${leg.hit}% </span></div><button type="button" class="text-btn" data-remove="${leg.id}">Quitar</button></li>`).join("")}
     </ul>
-    <p class="sub">El porcentaje multiplica el acierto de cada pata, como si fueran independientes. Es un cálculo de ejemplo, no una recomendación.</p>
+    <p class="sub">El porcentaje multiplica el acierto de cada cuota, como si fueran independientes. Es un cálculo de ejemplo, no una recomendación.</p>
     <div class="slip-actions">
       <button type="button" id="copy">Copiar enlace</button>
       <button type="button" id="photo">Compartir foto</button>
@@ -77,24 +85,39 @@ function renderSlip() {
   slipEl.querySelector("#whatsapp").addEventListener("click", shareWhatsApp);
 }
 
-function renderPicks() {
+function renderBoard() {
   const text = query.value.trim().toLocaleLowerCase("es");
-  const rows = FIXTURES.filter((match) => !text || searchBlob(match).toLocaleLowerCase("es").includes(text)).slice(0, 8);
-  picks.innerHTML = rows.map((match) => {
-    const goals = [
-      ["h", `${match.home} marca más goles`],
-      ["a", `${match.away} marca más goles`],
-    ];
-    const props = playerProps(match).map((prop) => `<button type="button" class="add-slip" data-leg="${prop.id}">${prop.player.name} ${prop.market.label}</button>`);
-    return `<article class="card pick">
-      <div class="meta-row"><span>${match.league}</span><span>${dayLabel(match.kickoff)} · ${hourLabel(match.kickoff)}</span></div>
-      <strong>${match.home} vs ${match.away}</strong>
-      <div class="pick-legs">
-        ${goals.map(([side, label]) => `<button type="button" class="add-slip" data-leg="g:${match.id}:${side}">${label}</button>`).join("")}
-        ${props.join("")}
-      </div>
-    </article>`;
-  }).join("") || `<p class="empty">Ningún partido coincide.</p>`;
+  const rows = FIXTURES.filter((match) => !text || searchBlob(match).toLocaleLowerCase("es").includes(text));
+  count.textContent = `${rows.length} partidos`;
+  if (!rows.length) {
+    board.innerHTML = `<p class="empty">Ningún partido coincide con la búsqueda.</p>`;
+    return;
+  }
+  const groups = [];
+  for (const match of rows) {
+    const day = dayLabel(match.kickoff);
+    let bucket = groups.find((item) => item.day === day);
+    if (!bucket) {
+      bucket = { day, key: dayKey(match.kickoff), comps: [] };
+      groups.push(bucket);
+    }
+    let comp = bucket.comps.find((item) => item.name === match.league);
+    if (!comp) {
+      comp = { name: match.league, matches: [] };
+      bucket.comps.push(comp);
+    }
+    comp.matches.push(match);
+  }
+  board.innerHTML = groups.map((bucket) => {
+    const total = bucket.comps.reduce((sum, comp) => sum + comp.matches.length, 0);
+    const holdsOpenMatch = bucket.comps.some((comp) => comp.matches.some((match) => match.id === openId.current));
+    const open = text || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
+    const noun = total === 1 ? "partido" : "partidos";
+    return `<details class="day fold" data-day="${bucket.key}"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps.map((comp) => `<h3 class="comp">${comp.name}</h3>${comp.matches.map((match) => {
+      const expanded = openId.current === match.id;
+      return `<button class="fixture" type="button" data-id="${match.id}" aria-expanded="${expanded}"><strong>${match.home} vs ${match.away}</strong><time>${hourLabel(match.kickoff)}</time></button>${expanded ? `<div class="fixture-panel">${quotePanel(match, ids)}</div>` : ""}`;
+    }).join("")}`).join("")}</details>`;
+  }).join("");
 }
 
 async function copyLink() {
@@ -180,21 +203,56 @@ async function shareWhatsApp() {
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
 }
 
+function paintSelection() {
+  board.querySelectorAll(".pickable").forEach((button) => {
+    const on = ids.includes(button.dataset.leg);
+    button.classList.toggle("is-on", on);
+    button.setAttribute("aria-pressed", String(on));
+    const state = button.querySelector(".pick-state");
+    if (state) state.textContent = on ? "En la combinada" : "Pulsar para añadir";
+  });
+}
+
 slipEl.addEventListener("click", (event) => {
   const button = event.target.closest("[data-remove]");
   if (!button) return;
   ids = removeSlip(button.dataset.remove);
   renderSlip();
+  paintSelection();
 });
 
-picks.addEventListener("click", (event) => {
-  const button = event.target.closest(".add-slip");
+board.addEventListener("click", (event) => {
+  const pick = event.target.closest(".pickable");
+  if (pick) {
+    const id = pick.dataset.leg;
+    if (ids.includes(id)) {
+      ids = removeSlip(id);
+      toast("Quitada de la combinada.");
+    } else {
+      const next = addSlip(id);
+      if (!next.includes(id)) {
+        toast("La combinada admite 12 cuotas.");
+        return;
+      }
+      ids = next;
+      toast("Añadida a la combinada.");
+    }
+    renderSlip();
+    paintSelection();
+    return;
+  }
+  const button = event.target.closest(".fixture");
   if (!button) return;
-  ids = addSlip(button.dataset.leg);
-  renderSlip();
-  toast("Añadida a la combinada.");
+  openDay.current = button.closest("details.day")?.dataset.day || openDay.current;
+  openId.current = openId.current === button.dataset.id ? null : button.dataset.id;
+  renderBoard();
+  document.querySelector(`[data-id="${CSS.escape(openId.current || "")}"]`)?.scrollIntoView({ block: "nearest" });
 });
 
-query.addEventListener("input", renderPicks);
+query.addEventListener("input", () => {
+  openId.current = null;
+  openDay.current = null;
+  renderBoard();
+});
 renderSlip();
-renderPicks();
+renderBoard();

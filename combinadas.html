@@ -11,7 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/styles.css?v=19" />
+    <link rel="stylesheet" href="css/styles.css?v=22" />
   </head>
   <body>
     <div class="orb orb-a"></div>
@@ -44,7 +44,7 @@
       <section class="board-head">
         <p class="kicker">Creador · cifras de ejemplo</p>
         <h1>Arma una combinada.</h1>
-        <p class="sub">Cada pata que añades multiplica la cuota y el porcentaje de acierto. El enlace guarda la selección. En el móvil, WhatsApp puede llevar también la foto.</p>
+        <p class="sub">Abre un partido, pulsa una cuota y se suma. La combinada calcula la cuota total y el porcentaje de acierto. El enlace guarda la selección.</p>
       </section>
 
       <article class="card" id="slip"></article>
@@ -52,11 +52,11 @@
 
       <section>
         <div class="section-head">
-          <h2>Añadir patas</h2>
-          <p>También puedes añadirlas desde un partido</p>
+          <h2>Partidos</h2>
+          <p id="count"></p>
         </div>
         <input id="q" class="board-search" type="search" placeholder="Busca un equipo o un jugador" autocomplete="off" />
-        <div id="picks" style="margin-top:16px"></div>
+        <div id="board"></div>
       </section>
 
       <footer>
@@ -65,6 +65,6 @@
       </footer>
     </div>
     <script src="js/nav.js?v=3"></script>
-    <script type="module" src="js/combinadas.js?v=1"></script>
+    <script type="module" src="js/combinadas.js?v=2"></script>
   </body>
 </html>
