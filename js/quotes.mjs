@@ -167,7 +167,7 @@ function catalog(match) {
       ["A favor, 2.ª parte", "cornersFor2"], ["En contra, 2.ª parte", "cornersAgainst2"],
       ["Desde el minuto 0 al 15, a favor", "cornersFor10"], ["Desde el minuto 0 al 15, en contra", "cornersAgainst10"],
     ])],
-    ["Tarjetas", "Recibidas y provocadas", linesFrom(home, away, [
+    ["Tarjetas", "En el encuentro", linesFrom(home, away, [
       ["Recibidas", "cardsFor"], ["Provocadas", "cardsAgainst"],
       ["Recibidas, 1.ª parte", "cardsFor1"], ["Provocadas, 1.ª parte", "cardsAgainst1"],
       ["Recibidas, 2.ª parte", "cardsFor2"], ["Provocadas, 2.ª parte", "cardsAgainst2"],
@@ -220,6 +220,18 @@ function catalog(match) {
   ];
 }
 
+export function isMirrorLine(label) {
+  return label === "Recibidos"
+    || label.startsWith("Recibidos,")
+    || label === "En contra"
+    || label.startsWith("En contra,")
+    || label.endsWith("en contra")
+    || label === "Provocadas"
+    || label.startsWith("Provocadas,")
+    || label.endsWith("provocadas")
+    || label === "Al rival";
+}
+
 function sectionsFor(match) {
   return catalog(match).map(([title, note, lines], sectionIndex) => ({
     title,
@@ -228,7 +240,7 @@ function sectionsFor(match) {
       ...row,
       homeId: `s:${match.id}:${sectionIndex}:${lineIndex}:h`,
       awayId: `s:${match.id}:${sectionIndex}:${lineIndex}:a`,
-    })),
+    })).filter((row) => !isMirrorLine(row.label)),
   }));
 }
 

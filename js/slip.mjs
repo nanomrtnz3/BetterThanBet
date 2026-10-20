@@ -1,4 +1,4 @@
-import { contraryIds, twinIds } from "./quotes.mjs";
+import { contraryIds, twinIds } from "./quotes.mjs?v=2";
 
 const KEY = "btb-slip";
 

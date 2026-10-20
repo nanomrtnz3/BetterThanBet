@@ -1,6 +1,6 @@
 import { FIXTURES, resolveLeg, searchBlob, dayKey, dayLabel, hourLabel } from "./demo.mjs";
-import { quotePanel, resolveQuote } from "./quotes.mjs";
-import { readSlip, removeSlip, takePick, writeSlip } from "./slip.mjs";
+import { quotePanel, resolveQuote } from "./quotes.mjs?v=2";
+import { readSlip, removeSlip, takePick, writeSlip } from "./slip.mjs?v=2";
 
 const slipEl = document.querySelector("#slip");
 const board = document.querySelector("#board");

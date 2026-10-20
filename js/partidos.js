@@ -1,6 +1,6 @@
 import { devig } from "../tools/probability.mjs";
-import { betCopy } from "./quotes.mjs";
-import { readSlip, takePick } from "./slip.mjs";
+import { betCopy, isMirrorLine } from "./quotes.mjs?v=2";
+import { readSlip, takePick } from "./slip.mjs?v=2";
 import { bindLineups, teamPitch } from "./lineup.mjs";
 import {
   BOOKS,
@@ -101,7 +101,7 @@ function linesFrom(home, away, rows) {
 }
 
 function section(match, title, note, lines) {
-  const rows = priceLines(match, title, lines);
+  const rows = priceLines(match, title, lines).filter((row) => !isMirrorLine(row.label));
   const cards = rows
     .map((row) => {
       const goal = title === "Goles" && row.label === "Anotados";
@@ -199,7 +199,7 @@ function statsBlock(match) {
       ["Desde el minuto 0 al 15, a favor", "cornersFor10"],
       ["Desde el minuto 0 al 15, en contra", "cornersAgainst10"],
     ])),
-    section(match, "Tarjetas", "Recibidas y provocadas", linesFrom(home, away, [
+    section(match, "Tarjetas", "En el encuentro", linesFrom(home, away, [
       ["Recibidas", "cardsFor"],
       ["Provocadas", "cardsAgainst"],
       ["Recibidas, 1.ª parte", "cardsFor1"],
