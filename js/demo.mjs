@@ -387,21 +387,23 @@ export function resolveLeg(id) {
   if (kind === "g") {
     const quote = goalQuote(match);
     const side = parts[2] === "a" ? quote.away : quote.home;
-    return { id, title: `${side.team} marca más goles`, detail, odd: side.odd, hit: side.hit };
+    const rival = side === quote.home ? quote.away.team : quote.home.team;
+    return { id, title: `${side.team} marca más goles que ${rival} en el encuentro`, detail, odd: side.odd, hit: side.hit };
   }
   if (kind === "b") {
     const book = BOOKS.find((item) => item.id === parts[2]);
     if (!book) return null;
     const quote = bookQuote(match, book);
     const side = parts[3] === "a" ? quote.away : quote.home;
-    return { id, title: `${side.team} marca más goles · ${book.name}`, detail, odd: side.odd, hit: side.hit };
+    const rival = side === quote.home ? quote.away.team : quote.home.team;
+    return { id, title: `${side.team} marca más goles que ${rival} en el encuentro · ${book.name}`, detail, odd: side.odd, hit: side.hit };
   }
   if (kind === "p") {
     const market = PROP_MARKETS.find((item) => item.key === parts[4]);
     const person = [...squad(match.home).all, ...squad(match.away).all].find((player) => slug(player.team) === parts[2] && slug(player.name) === parts[3]);
     if (!market || !person || person.status !== "ok") return null;
     const price = propPrice(match, person, market);
-    return { id, title: `${person.name} ${market.label}`, detail: `${person.team} · ${detail}`, odd: price.odd, hit: price.hit };
+    return { id, title: `${person.name} ${market.label} en el encuentro`, detail: `${person.team} · ${detail}`, odd: price.odd, hit: price.hit };
   }
   return null;
 }

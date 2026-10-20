@@ -1,5 +1,6 @@
 import { devig } from "../tools/probability.mjs";
-import { addSlip } from "./slip.mjs";
+import { betCopy } from "./quotes.mjs";
+import { readSlip, takePick } from "./slip.mjs";
 import { bindLineups, teamPitch } from "./lineup.mjs";
 import {
   BOOKS,
@@ -35,59 +36,6 @@ for (const match of FIXTURES) {
   dateSelect.append(option);
 }
 
-function betWhat(section, label) {
-  if (section === "Resultados") {
-    if (label === "Partido") return "victorias en el partido";
-    if (label === "Al descanso") return "victorias al descanso";
-    return "victorias desde el minuto 0 al 15";
-  }
-  const noun = {
-    Goles: "goles",
-    Córners: "córners",
-    Tarjetas: "tarjetas",
-    "Fueras de juego": "fueras de juego",
-    Remates: "remates",
-    "Remates a puerta": "remates a puerta",
-    "Saques de puerta": "saques de puerta",
-    "Saques de banda": "saques de banda",
-    Entradas: "entradas",
-    "Tiros libres": "tiros libres",
-    Faltas: "faltas",
-  }[section] || "ese dato";
-  if (label.startsWith("Desde el minuto")) {
-    const range = label.split(",")[0].replace("Desde", "desde");
-    if (label.endsWith("recibidas")) return `tarjetas recibidas, ${range}`;
-    if (label.endsWith("provocadas")) return `tarjetas provocadas, ${range}`;
-    if (label.endsWith("en contra")) return `${noun} en contra, ${range}`;
-    return `${noun} a favor, ${range}`;
-  }
-  const named = {
-    Anotados: `${noun} anotados por partido`,
-    Recibidos: `${noun} recibidos por partido`,
-    "Anotados, 1.ª parte": `${noun} anotados en la primera parte`,
-    "Recibidos, 1.ª parte": `${noun} recibidos en la primera parte`,
-    "Anotados, 2.ª parte": `${noun} anotados en la segunda parte`,
-    "Recibidos, 2.ª parte": `${noun} recibidos en la segunda parte`,
-    "A favor": `${noun} a favor por partido`,
-    "En contra": `${noun} en contra por partido`,
-    "A favor, 1.ª parte": `${noun} a favor en la primera parte`,
-    "En contra, 1.ª parte": `${noun} en contra en la primera parte`,
-    "A favor, 2.ª parte": `${noun} a favor en la segunda parte`,
-    "En contra, 2.ª parte": `${noun} en contra en la segunda parte`,
-    Recibidas: "tarjetas que le sacan al equipo, por partido",
-    Provocadas: "tarjetas que el equipo provoca, por partido",
-    "Recibidas, 1.ª parte": "tarjetas que le sacan en la primera parte",
-    "Provocadas, 1.ª parte": "tarjetas que provoca en la primera parte",
-    "Recibidas, 2.ª parte": "tarjetas que le sacan en la segunda parte",
-    "Provocadas, 2.ª parte": "tarjetas que provoca en la segunda parte",
-    "Rojas a favor": "tarjetas rojas a favor por partido",
-    "Rojas en contra": "tarjetas rojas en contra por partido",
-    "Al equipo": "fueras de juego pitados al equipo, por partido",
-    "Al rival": "fueras de juego pitados al rival, por partido",
-  };
-  return named[label] || `${noun}, ${label.toLowerCase()}`;
-}
-
 function priceLines(match, title, lines) {
   const rand = mulberry32(hashName(`${match.id}:${title}`) || 1);
   const hit = (value) => Math.round(value * 1000) / 10;
@@ -100,8 +48,15 @@ function priceLines(match, title, lines) {
     const homeOdd = Math.max(1.01, decimal(pHome, rand));
     const awayOdd = Math.max(1.01, decimal(1 - pHome, rand));
     const [fairHome, fairAway] = devig([homeOdd, awayOdd]);
-    const what = betWhat(title, line.label);
-    const side = (team, rival, odd, fair, figure) => ({ team, rival, odd, hit: hit(fair), what, figure, label: line.label });
+    const side = (team, rival, odd, fair, figure) => ({
+      team,
+      rival,
+      odd,
+      hit: hit(fair),
+      figure,
+      label: line.label,
+      copy: betCopy(title, line.label, team, rival),
+    });
     return [{
       label: line.label,
       kind: line.kind,
@@ -113,7 +68,7 @@ function priceLines(match, title, lines) {
 
 function betCard(side, legId) {
   const add = legId ? `<button type="button" class="add-slip" data-leg="${legId}">Añadir</button>` : "";
-  return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> supera a ${side.rival} en ${side.what}.</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div>${add}</div>`;
+  return `<div class="bet"><p>${side.copy.html}</p><div class="odd"><small>${side.team}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">cuota</small></div>${add}</div>`;
 }
 
 function actionsHtml(rows) {
@@ -177,12 +132,15 @@ function extraFolds(match) {
   );
   const lineup = fold("Alineación probable", "Once, banquillo y bajas", `<div class="pitch-pair">${teamPitch(match.home)}${teamPitch(match.away)}</div><p class="sub">Pulsa un jugador para ver sus amarillas. El ciclo de ejemplo es de 5. Estas plantillas no son las reales.</p>`);
   const props = playerProps(match)
-    .map((prop) => `<div class="bet prop"><p><b>${prop.player.name}</b> ${prop.market.label}. <span class="sub">${prop.player.team} · ${yellowText(prop.player.yellows)}</span></p><div class="odd"><small>cuota</small><b>${prop.odd.toFixed(2)}</b><small class="odd-kind">${prop.hit}%</small></div><button type="button" class="add-slip" data-leg="${prop.id}">Añadir</button></div>`)
+    .map((prop) => `<div class="bet prop"><p>Apuesta a que <b>${prop.player.name}</b> ${prop.market.label} en el encuentro. <span class="sub">${prop.player.team} · ${yellowText(prop.player.yellows)}</span></p><div class="odd"><small>cuota</small><b>${prop.odd.toFixed(2)}</b><small class="odd-kind">${prop.hit}%</small></div><button type="button" class="add-slip" data-leg="${prop.id}">Añadir</button></div>`)
     .join("");
   const players = fold("Cuotas de jugadores", "Gol, asistencia o tarjeta", `<div class="prop-grid">${props}</div>`);
   const books = BOOKS.map((book) => {
     const quote = bookQuote(match, book);
-    const card = (side, key) => `<div class="bet"><p><b>${side.team}</b> marca más goles. Cuota de ejemplo de ${book.name}.</p><div class="odd"><small>${book.name}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">${side.hit}%</small></div><button type="button" class="add-slip" data-leg="b:${match.id}:${book.id}:${key}">Añadir</button></div>`;
+    const card = (side, key) => {
+      const rival = side.team === match.home ? match.away : match.home;
+      return `<div class="bet"><p>Apuesta a que <b>${side.team}</b> marca más goles que ${rival} en el encuentro. Cuota de ejemplo de ${book.name}.</p><div class="odd"><small>${book.name}</small><b>${side.odd.toFixed(2)}</b><small class="odd-kind">${side.hit}%</small></div><button type="button" class="add-slip" data-leg="b:${match.id}:${book.id}:${key}">Añadir</button></div>`;
+    };
     return fold(book.name, "Cuotas de ejemplo", `<div class="odds bets">${card(quote.home, "h")}${card(quote.away, "a")}</div>`);
   }).join("");
   return `${stats}${lineup}${players}${fold("Casas de apuestas", "Cuatro casas", books)}`;
@@ -220,7 +178,7 @@ function statsBlock(match) {
     kind: "registro",
   });
   const sections = [
-    section(match, "Goles", "Por partido", [
+    section(match, "Goles", "En el encuentro", [
       ...linesFrom(home, away, [
         ["Anotados", "goalsFor"],
         ["Recibidos", "goalsAgainst"],
@@ -231,7 +189,7 @@ function statsBlock(match) {
       ]),
       ...bins,
     ]),
-    section(match, "Córners", "Por partido", linesFrom(home, away, [
+    section(match, "Córners", "En el encuentro", linesFrom(home, away, [
       ["A favor", "cornersFor"],
       ["En contra", "cornersAgainst"],
       ["A favor, 1.ª parte", "cornersFor1"],
@@ -253,11 +211,11 @@ function statsBlock(match) {
       ["Rojas a favor", "redsFor"],
       ["Rojas en contra", "redsAgainst"],
     ])),
-    section(match, "Fueras de juego", "Pitados por partido", linesFrom(home, away, [
+    section(match, "Fueras de juego", "En el encuentro", linesFrom(home, away, [
       ["Al equipo", "offsidesFor"],
       ["Al rival", "offsidesAgainst"],
     ])),
-    section(match, "Remates", "Por partido", linesFrom(home, away, [
+    section(match, "Remates", "En el encuentro", linesFrom(home, away, [
       ["A favor", "shotsFor"],
       ["En contra", "shotsAgainst"],
       ["A favor, 1.ª parte", "shotsFor1"],
@@ -265,7 +223,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "shotsFor2"],
       ["En contra, 2.ª parte", "shotsAgainst2"],
     ])),
-    section(match, "Remates a puerta", "Por partido", linesFrom(home, away, [
+    section(match, "Remates a puerta", "En el encuentro", linesFrom(home, away, [
       ["A favor", "sotFor"],
       ["En contra", "sotAgainst"],
       ["A favor, 1.ª parte", "sotFor1"],
@@ -273,7 +231,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "sotFor2"],
       ["En contra, 2.ª parte", "sotAgainst2"],
     ])),
-    section(match, "Saques de puerta", "Por partido", linesFrom(home, away, [
+    section(match, "Saques de puerta", "En el encuentro", linesFrom(home, away, [
       ["A favor", "goalKicksFor"],
       ["En contra", "goalKicksAgainst"],
       ["A favor, 1.ª parte", "goalKicksFor1"],
@@ -281,7 +239,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "goalKicksFor2"],
       ["En contra, 2.ª parte", "goalKicksAgainst2"],
     ])),
-    section(match, "Saques de banda", "Por partido", linesFrom(home, away, [
+    section(match, "Saques de banda", "En el encuentro", linesFrom(home, away, [
       ["A favor", "throwInsFor"],
       ["En contra", "throwInsAgainst"],
       ["A favor, 1.ª parte", "throwInsFor1"],
@@ -289,7 +247,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "throwInsFor2"],
       ["En contra, 2.ª parte", "throwInsAgainst2"],
     ])),
-    section(match, "Entradas", "Por partido", linesFrom(home, away, [
+    section(match, "Entradas", "En el encuentro", linesFrom(home, away, [
       ["A favor", "tacklesFor"],
       ["En contra", "tacklesAgainst"],
       ["A favor, 1.ª parte", "tacklesFor1"],
@@ -297,7 +255,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "tacklesFor2"],
       ["En contra, 2.ª parte", "tacklesAgainst2"],
     ])),
-    section(match, "Tiros libres", "Faltas sacadas, por partido", linesFrom(home, away, [
+    section(match, "Tiros libres", "En el encuentro", linesFrom(home, away, [
       ["A favor", "freeKicksFor"],
       ["En contra", "freeKicksAgainst"],
       ["A favor, 1.ª parte", "freeKicksFor1"],
@@ -305,7 +263,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "freeKicksFor2"],
       ["En contra, 2.ª parte", "freeKicksAgainst2"],
     ])),
-    section(match, "Faltas", "Por partido", linesFrom(home, away, [
+    section(match, "Faltas", "En el encuentro", linesFrom(home, away, [
       ["A favor", "foulsFor"],
       ["En contra", "foulsAgainst"],
       ["A favor, 1.ª parte", "foulsFor1"],
@@ -313,7 +271,7 @@ function statsBlock(match) {
       ["A favor, 2.ª parte", "foulsFor2"],
       ["En contra, 2.ª parte", "foulsAgainst2"],
     ])),
-    section(match, "Resultados", "Victorias, empates y derrotas", [
+    section(match, "Resultados", "En el encuentro", [
       recordLine("Partido", home.results, away.results),
       recordLine("Al descanso", home.resultsHalf, away.resultsHalf),
       recordLine("Desde el minuto 0 al 15", home.results10, away.results10),
@@ -391,8 +349,8 @@ function toast(message) {
 board.addEventListener("click", (event) => {
   const add = event.target.closest(".add-slip");
   if (add) {
-    addSlip(add.dataset.leg);
-    toast("Añadida a la combinada.");
+    const next = takePick(readSlip(), add.dataset.leg);
+    toast(next.added ? (next.replaced ? "Se sustituyó la cuota contraria." : "Añadida a la combinada.") : "La combinada admite 12 cuotas.");
     return;
   }
   const button = event.target.closest(".fixture");

@@ -1,3 +1,5 @@
+import { contraryIds, twinIds } from "./quotes.mjs";
+
 const KEY = "btb-slip";
 
 export function readSlip() {
@@ -21,4 +23,12 @@ export function addSlip(id) {
 
 export function removeSlip(id) {
   return writeSlip(readSlip().filter((item) => item !== id));
+}
+
+export function takePick(ids, id) {
+  const rivals = contraryIds(id);
+  const replaced = rivals.some((other) => ids.includes(other));
+  const drop = new Set([...rivals, ...twinIds(id)]);
+  const next = writeSlip([...ids.filter((item) => item !== id && !drop.has(item)), id]);
+  return { ids: next, replaced, added: next.includes(id) };
 }

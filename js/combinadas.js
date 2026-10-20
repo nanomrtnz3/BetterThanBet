@@ -1,6 +1,6 @@
 import { FIXTURES, resolveLeg, searchBlob, dayKey, dayLabel, hourLabel } from "./demo.mjs";
 import { quotePanel, resolveQuote } from "./quotes.mjs";
-import { addSlip, readSlip, removeSlip, writeSlip } from "./slip.mjs";
+import { readSlip, removeSlip, takePick, writeSlip } from "./slip.mjs";
 
 const slipEl = document.querySelector("#slip");
 const board = document.querySelector("#board");
@@ -229,13 +229,13 @@ board.addEventListener("click", (event) => {
       ids = removeSlip(id);
       toast("Quitada de la combinada.");
     } else {
-      const next = addSlip(id);
-      if (!next.includes(id)) {
+      const next = takePick(ids, id);
+      if (!next.added) {
         toast("La combinada admite 12 cuotas.");
         return;
       }
-      ids = next;
-      toast("Añadida a la combinada.");
+      ids = next.ids;
+      toast(next.replaced ? "Se sustituyó la cuota contraria." : "Añadida a la combinada.");
     }
     renderSlip();
     paintSelection();
