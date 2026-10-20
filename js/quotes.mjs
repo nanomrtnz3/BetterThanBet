@@ -220,6 +220,126 @@ function catalog(match) {
   ];
 }
 
+const WINDOWS = [0, 16, 31, 46, 61, 76];
+const pricedRows = new Map();
+
+function pricedSection(match, sectionIndex) {
+  const key = `${match.id}:${sectionIndex}`;
+  if (pricedRows.has(key)) return pricedRows.get(key);
+  const section = catalog(match)[sectionIndex];
+  const rows = section ? priceLines(match, section[0], section[2]) : [];
+  pricedRows.set(key, { title: section?.[0] || "", rows });
+  return pricedRows.get(key);
+}
+
+function spanForLabel(label) {
+  const flip = label === "Recibidos"
+    || label.startsWith("Recibidos,")
+    || label === "En contra"
+    || label.startsWith("En contra,")
+    || label.endsWith("en contra")
+    || label === "Provocadas"
+    || label.startsWith("Provocadas,")
+    || label.endsWith("provocadas")
+    || label === "Al rival";
+  let start = 0;
+  let end = 6;
+  if (label.includes("1.ª parte")) end = 3;
+  else if (label.includes("2.ª parte")) start = 3;
+  else if (label.startsWith("Desde el minuto")) {
+    const from = Number(label.match(/minuto (\d+)/)?.[1]);
+    const index = WINDOWS.indexOf(from);
+    if (index < 0) return null;
+    start = index;
+    end = index + 1;
+  } else if (![
+    "Anotados", "Recibidos", "A favor", "En contra", "Recibidas", "Provocadas",
+    "Al equipo", "Al rival", "Rojas a favor", "Rojas en contra",
+  ].includes(label)) return null;
+  return { start, end, flip };
+}
+
+export function pickSpan(id) {
+  const parts = id.split(":");
+  if (parts[0] === "g" || parts[0] === "b") {
+    const side = parts[parts[0] === "g" ? 2 : 3] === "a" ? "a" : "h";
+    return { group: `${parts[1]}:0:Goles`, start: 0, end: 6, side };
+  }
+  if (parts[0] !== "s") return null;
+  const match = FIXTURES.find((item) => item.id === parts[1]);
+  if (!match) return null;
+  const sectionIndex = Number(parts[2]);
+  const priced = pricedSection(match, sectionIndex);
+  if (priced.title === "Resultados") return null;
+  const row = priced.rows[Number(parts[3])];
+  if (!row) return null;
+  const span = spanForLabel(row.label);
+  if (!span) return null;
+  let side = parts[4] === "a" ? "a" : "h";
+  if (span.flip) side = side === "h" ? "a" : "h";
+  const family = row.label.startsWith("Rojas") ? "rojas" : priced.title;
+  return { group: `${parts[1]}:${sectionIndex}:${family}`, start: span.start, end: span.end, side };
+}
+
+function spansFeasible(spans) {
+  const groups = new Map();
+  for (const span of spans) {
+    if (!span) continue;
+    const list = groups.get(span.group) || [];
+    list.push(span);
+    groups.set(span.group, list);
+  }
+  for (const list of groups.values()) {
+    const edges = list.map((span) => (span.side === "h" ? [span.end, span.start, -1] : [span.start, span.end, -1]));
+    const dist = [0, 0, 0, 0, 0, 0, 0];
+    for (let pass = 0; pass < 7; pass += 1) {
+      let updated = false;
+      for (const [from, to, weight] of edges) {
+        if (dist[to] > dist[from] + weight) {
+          if (pass === 6) return false;
+          dist[to] = dist[from] + weight;
+          updated = true;
+        }
+      }
+      if (!updated) break;
+    }
+  }
+  return true;
+}
+
+function combinations(items, size) {
+  const found = [];
+  const walk = (start, chosen) => {
+    if (chosen.length === size) {
+      found.push([...chosen]);
+      return;
+    }
+    for (let index = start; index < items.length; index += 1) {
+      chosen.push(items[index]);
+      walk(index + 1, chosen);
+      chosen.pop();
+    }
+  };
+  walk(0, []);
+  return found;
+}
+
+export function incompatibleIds(existing, id) {
+  const added = pickSpan(id);
+  if (!added) return [];
+  const same = existing.filter((item) => pickSpan(item)?.group === added.group);
+  const pool = [id, ...same];
+  if (spansFeasible(pool.map(pickSpan))) return [];
+  const ranked = [...same].sort((left, right) => (pickSpan(right).end - pickSpan(right).start) - (pickSpan(left).end - pickSpan(left).start));
+  for (let size = 1; size <= ranked.length; size += 1) {
+    for (const combo of combinations(ranked, size)) {
+      const drop = new Set(combo);
+      if (spansFeasible(pool.filter((item) => !drop.has(item)).map(pickSpan))) return combo;
+    }
+  }
+  return same;
+}
+
 export function isMirrorLine(label) {
   return label === "Recibidos"
     || label.startsWith("Recibidos,")
@@ -276,13 +396,13 @@ export function quotePanel(match, selected) {
 
 export function resolveQuote(id) {
   if (!id.startsWith("s:")) return null;
-  const [, matchId, sectionIndex, lineIndex, side] = id.split(":");
+  const [, matchId, sectionIndex] = id.split(":");
   const match = FIXTURES.find((item) => item.id === matchId);
   if (!match) return null;
   const section = sectionsFor(match)[Number(sectionIndex)];
-  const row = section?.rows[Number(lineIndex)];
+  const row = section?.rows.find((item) => item.homeId === id || item.awayId === id);
   if (!row) return null;
-  const pick = side === "a" ? row.away : row.home;
+  const pick = row.awayId === id ? row.away : row.home;
   return {
     id,
     title: pick.copy.text,

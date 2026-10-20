@@ -1,6 +1,6 @@
 import { devig } from "../tools/probability.mjs";
-import { betCopy, isMirrorLine } from "./quotes.mjs?v=2";
-import { readSlip, takePick } from "./slip.mjs?v=2";
+import { betCopy, isMirrorLine } from "./quotes.mjs?v=4";
+import { pickToast, readSlip, takePick } from "./slip.mjs?v=4";
 import { bindLineups, teamPitch } from "./lineup.mjs";
 import {
   BOOKS,
@@ -350,7 +350,7 @@ board.addEventListener("click", (event) => {
   const add = event.target.closest(".add-slip");
   if (add) {
     const next = takePick(readSlip(), add.dataset.leg);
-    toast(next.added ? (next.replaced ? "Se sustituyó la cuota contraria." : "Añadida a la combinada.") : "La combinada admite 12 cuotas.");
+    toast(pickToast(next));
     return;
   }
   const button = event.target.closest(".fixture");
