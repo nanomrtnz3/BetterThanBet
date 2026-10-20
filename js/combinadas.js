@@ -187,20 +187,25 @@ async function sharePhoto() {
 
 async function shareWhatsApp() {
   syncHash();
-  const rows = legs();
-  const text = summary(rows);
+  const link = location.href;
   const blob = await drawSlip();
   const file = new File([blob], "combinada.png", { type: "image/png" });
-  const mobile = window.matchMedia("(pointer: coarse)").matches;
-  if (mobile && navigator.canShare?.({ files: [file] })) {
+  if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], text, title: "Combinada" });
+      await navigator.share({ files: [file], title: "Combinada", text: link });
       return;
     } catch (err) {
       if (err.name === "AbortError") return;
     }
   }
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  const url = URL.createObjectURL(blob);
+  const download = document.createElement("a");
+  download.href = url;
+  download.download = "combinada.png";
+  download.click();
+  URL.revokeObjectURL(url);
+  window.open(`https://wa.me/?text=${encodeURIComponent(link)}`, "_blank", "noopener");
+  toast("Foto guardada. WhatsApp abre solo con el enlace para que adjuntes la foto.");
 }
 
 function paintSelection() {
