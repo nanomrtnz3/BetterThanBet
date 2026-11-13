@@ -79,10 +79,12 @@ function renderSlip() {
       <button type="button" id="copy">Copiar enlace</button>
       <button type="button" id="photo">Compartir foto</button>
       <button type="button" id="whatsapp">WhatsApp</button>
+      <button type="button" id="clear">Eliminar combinada</button>
     </div>`;
   slipEl.querySelector("#copy").addEventListener("click", copyLink);
   slipEl.querySelector("#photo").addEventListener("click", sharePhoto);
   slipEl.querySelector("#whatsapp").addEventListener("click", shareWhatsApp);
+  slipEl.querySelector("#clear").addEventListener("click", clearSlip);
 }
 
 function renderBoard() {
@@ -206,6 +208,13 @@ async function shareWhatsApp() {
   URL.revokeObjectURL(url);
   window.open(`https://wa.me/?text=${encodeURIComponent(link)}`, "_blank", "noopener");
   toast("Foto guardada. WhatsApp abre solo con el enlace para que adjuntes la foto.");
+}
+
+function clearSlip() {
+  ids = writeSlip([]);
+  renderSlip();
+  paintSelection();
+  toast("Combinada eliminada.");
 }
 
 function paintSelection() {
