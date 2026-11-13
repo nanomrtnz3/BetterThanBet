@@ -5,6 +5,7 @@ import { pickToast, readSlip, removeSlip, takePick, writeSlip } from "./slip.mjs
 const slipEl = document.querySelector("#slip");
 const board = document.querySelector("#board");
 const query = document.querySelector("#q");
+const dateSelect = document.querySelector("#day");
 const count = document.querySelector("#count");
 const notice = document.querySelector("#notice");
 const openId = { current: null };
@@ -18,6 +19,17 @@ function idsFromHash() {
   const raw = decodeURIComponent(location.hash.slice(1));
   if (!raw) return null;
   return raw.split(",").map((id) => id.trim()).filter(Boolean);
+}
+
+const seenDays = new Set();
+for (const match of FIXTURES) {
+  const key = dayKey(match.kickoff);
+  if (seenDays.has(key)) continue;
+  seenDays.add(key);
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = dayLabel(match.kickoff);
+  dateSelect.append(option);
 }
 
 let ids = idsFromHash() || readSlip();
@@ -89,8 +101,12 @@ function renderSlip() {
 
 function renderBoard() {
   const text = query.value.trim().toLocaleLowerCase("es");
-  const rows = FIXTURES.filter((match) => !text || searchBlob(match).toLocaleLowerCase("es").includes(text));
-  count.textContent = `${rows.length} partidos`;
+  const picked = dateSelect.value;
+  const rows = FIXTURES.filter((match) => {
+    const sameDay = !picked || dayKey(match.kickoff) === picked;
+    return sameDay && (!text || searchBlob(match).toLocaleLowerCase("es").includes(text));
+  });
+  count.textContent = `${rows.length} ${rows.length === 1 ? "partido" : "partidos"}`;
   if (!rows.length) {
     board.innerHTML = `<p class="empty">Ningún partido coincide con la búsqueda.</p>`;
     return;
@@ -113,7 +129,7 @@ function renderBoard() {
   board.innerHTML = groups.map((bucket) => {
     const total = bucket.comps.reduce((sum, comp) => sum + comp.matches.length, 0);
     const holdsOpenMatch = bucket.comps.some((comp) => comp.matches.some((match) => match.id === openId.current));
-    const open = text || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
+    const open = text || (picked && bucket.key === picked) || holdsOpenMatch || bucket.key === openDay.current ? " open" : "";
     const noun = total === 1 ? "partido" : "partidos";
     return `<details class="day fold" data-day="${bucket.key}"${open}><summary><span>${bucket.day}</span><small>${total} ${noun}</small></summary>${bucket.comps.map((comp) => `<h3 class="comp">${comp.name}</h3>${comp.matches.map((match) => {
       const expanded = openId.current === match.id;
@@ -267,6 +283,12 @@ query.addEventListener("input", () => {
   openId.current = null;
   openDay.current = null;
   renderBoard();
+});
+dateSelect.addEventListener("change", () => {
+  openId.current = null;
+  openDay.current = dateSelect.value || null;
+  renderBoard();
+  if (dateSelect.value) board.querySelector("details[open]")?.scrollIntoView({ block: "start" });
 });
 renderSlip();
 renderBoard();
